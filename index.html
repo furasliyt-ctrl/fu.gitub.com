@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -29,8 +28,11 @@
       --theme-primary-light: #eff6ff;
       --theme-border: #1e3a8a;
       --paper-font: 'Cairo', sans-serif;
-      --paper-margin: 14mm;
-      --paper-line-height: 1.75;
+      --paper-margin: 10mm;
+      --paper-line-height: 1.45;
+      --paper-scale: 1;
+      --thin-bar-font: 13px;
+      --thin-bar-py: 5px;
     }
 
     * {
@@ -62,10 +64,11 @@
       background: #94a3b8;
     }
 
-    /* A4 Paper Simulation */
+    /* A4 Paper Simulation - Strict Single Page Fit */
     .a4-sheet {
       width: 210mm;
-      min-height: 297mm;
+      height: 297mm;
+      max-height: 297mm;
       background: #ffffff;
       box-shadow: 0 12px 35px -8px rgba(15, 23, 42, 0.14), 0 0 1px rgba(15, 23, 42, 0.2);
       margin: 0 auto;
@@ -73,41 +76,73 @@
       font-family: var(--paper-font);
       line-height: var(--paper-line-height);
       position: relative;
-      transition: all 0.25s ease;
+      transition: all 0.2s ease;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      overflow: hidden;
     }
 
     .a4-sheet.landscape {
       width: 297mm;
-      min-height: 210mm;
+      height: 210mm;
+      max-height: 210mm;
     }
 
     /* Paper Borders */
     .paper-inner-frame {
       flex: 1;
+      height: 100%;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       position: relative;
+      overflow: hidden;
     }
 
     .frame-simple {
       border: 2px solid var(--theme-border);
-      padding: 10mm;
+      padding: 6mm 8mm;
     }
 
     .frame-double {
       border: 4px double var(--theme-border);
-      padding: 10mm;
+      padding: 6mm 8mm;
     }
 
     .frame-ornate {
       border: 2px solid var(--theme-border);
       outline: 1px solid var(--theme-border);
       outline-offset: -5px;
-      padding: 11mm;
+      padding: 7mm 9mm;
+    }
+
+    /* Thin Top Rectangular Bar (School, Grade, Section) */
+    .thin-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1.8px solid var(--theme-border);
+      background-color: var(--theme-primary-light);
+      border-radius: 6px;
+      padding: var(--thin-bar-py) 12px;
+      margin-bottom: 10px;
+      font-size: var(--thin-bar-font);
+      line-height: 1.3;
+      position: relative;
+      transition: all 0.15s ease;
+    }
+
+    .thin-header-bar:hover .header-size-controls {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .header-size-controls {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
     }
 
     /* Editable placeholders */
@@ -124,10 +159,12 @@
       border-radius: 4px;
     }
 
-    /* Question Block Styling */
+    /* Compact Question Block Styling to Fit More Questions */
     .question-block {
       position: relative;
-      border-radius: 10px;
+      border-radius: 8px;
+      padding: 4px 8px !important;
+      margin-bottom: 2px !important;
       transition: box-shadow 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
       break-inside: avoid;
       page-break-inside: avoid;
@@ -158,7 +195,8 @@
     }
 
     @media (max-width: 1024px) {
-      .block-controls {
+      .block-controls,
+      .header-size-controls {
         opacity: 1;
         pointer-events: auto;
       }
@@ -166,13 +204,13 @@
 
     /* Answer Lines */
     .answer-line-solid {
-      border-bottom: 1.5px solid #64748b;
-      height: 28px;
+      border-bottom: 1.2px solid #64748b;
+      height: 20px;
       width: 100%;
     }
     .answer-line-dotted {
-      border-bottom: 1.5px dotted #64748b;
-      height: 28px;
+      border-bottom: 1.2px dotted #64748b;
+      height: 20px;
       width: 100%;
     }
 
@@ -180,13 +218,13 @@
     .exam-table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 8px;
-      margin-bottom: 6px;
+      margin-top: 4px;
+      margin-bottom: 4px;
     }
     .exam-table th, .exam-table td {
-      border: 1.5px solid #475569;
-      padding: 6px 10px;
-      min-width: 60px;
+      border: 1.2px solid #475569;
+      padding: 3px 8px;
+      min-width: 50px;
     }
     .exam-table th {
       background-color: var(--theme-primary-light);
@@ -197,6 +235,7 @@
     /* Preview Mode */
     body.preview-mode .no-preview,
     body.preview-mode .block-controls,
+    body.preview-mode .header-size-controls,
     body.preview-mode .add-between-btn {
       display: none !important;
     }
@@ -216,27 +255,31 @@
       .a4-sheet {
         width: 100%;
         min-width: 340px;
-        min-height: auto;
-        padding: 14px;
+        height: auto;
+        max-height: none;
+        padding: 12px;
       }
       .frame-simple, .frame-double, .frame-ornate {
-        padding: 10px;
+        padding: 8px;
       }
     }
 
-    /* Print Engine Rules */
+    /* Print Engine Rules - Force Single A4 Page */
     @media print {
       @page {
         size: A4;
-        margin: 8mm;
+        margin: 6mm;
       }
-      body {
+      html, body {
         background: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
       .no-print,
       .block-controls,
+      .header-size-controls,
       .add-between-btn,
       #toast-container,
       #modal-backdrop {
@@ -250,10 +293,14 @@
       }
       .a4-sheet {
         width: 100% !important;
-        min-height: 280mm !important;
+        height: 284mm !important;
+        max-height: 284mm !important;
         box-shadow: none !important;
         margin: 0 !important;
-        padding: var(--paper-margin) !important;
+        padding: 4mm !important;
+        overflow: hidden !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
       }
       .question-block {
         box-shadow: none !important;
@@ -337,13 +384,13 @@
       <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-2">
         <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <!-- Direct Word (.docx) Export Button -->
-          <button onclick="exportToDOCX()" class="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition cursor-pointer" title="تنزيل ملف Word قابل للتعديل">
+          <button id="export-main-btn" onclick="exportToDOCX()" class="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition cursor-pointer" title="تنزيل ملف Word قابل للتعديل">
             <i data-lucide="file-text" class="w-4 h-4"></i>
             <span>تصدير Word</span>
           </button>
 
           <!-- Direct PDF Export Button -->
-          <button onclick="exportToPDF()" class="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-rose-600 hover:bg-rose-500 text-white shadow-sm transition cursor-pointer" title="تنزيل ملف PDF جاهز للطباعة">
+          <button onclick="exportToPDF()" class="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-rose-600 hover:bg-rose-500 text-white shadow-sm transition cursor-pointer" title="تنزيل ملف PDF في ورقة A4 واحدة">
             <i data-lucide="file-down" class="w-4 h-4"></i>
             <span>تصدير PDF</span>
           </button>
@@ -360,6 +407,12 @@
             <span>حفظ الامتحان</span>
           </button>
 
+          <!-- Auto-Fit to Single A4 Page Button -->
+          <button onclick="autoFitSingleA4()" class="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-sm transition cursor-pointer" title="ضغط المحتوى تلقائياً ليتسع في ورقة A4 واحدة">
+            <i data-lucide="minimize-2" class="w-4 h-4"></i>
+            <span>ضبط بورقة A4 واحدة</span>
+          </button>
+
           <!-- Copy All Questions Button -->
           <button onclick="copyAllQuestions()" class="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700 transition cursor-pointer" title="نسخ جميع الأسئلة مع التنسيق">
             <i data-lucide="copy" class="w-4 h-4 text-sky-400"></i>
@@ -369,7 +422,7 @@
 
         <div class="hidden md:flex items-center gap-2 text-[11px] text-slate-300">
           <span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span>الحفظ التلقائي مفعّل • مقاس الورقة A4</span>
+          <span>الحفظ التلقائي مفعّل • ورقة A4 واحدة مضغوطة</span>
         </div>
       </div>
     </div>
@@ -391,21 +444,20 @@
         </select>
 
         <!-- Font Size -->
-        <div class="flex items-center bg-white border border-slate-200 rounded-lg h-8 px-1" title="حجم الخط">
+        <div class="flex items-center bg-white border border-slate-200 rounded-lg h-8 px-1" title="حجم خط الأسئلة">
           <button onclick="changeSelectedFontSize(-1)" class="w-6 h-6 flex items-center justify-center text-slate-600 hover:bg-slate-100 rounded text-xs font-bold">-</button>
           <select id="toolbar-font-size" onchange="applyFontSize(this.value)" class="text-xs font-bold text-slate-700 bg-transparent px-1 focus:outline-none">
+            <option value="10">10</option>
             <option value="11">11</option>
             <option value="12">12</option>
-            <option value="13">13</option>
-            <option value="14" selected>14</option>
+            <option value="13" selected>13</option>
+            <option value="14">14</option>
             <option value="15">15</option>
             <option value="16">16</option>
             <option value="18">18</option>
             <option value="20">20</option>
             <option value="22">22</option>
             <option value="24">24</option>
-            <option value="28">28</option>
-            <option value="32">32</option>
           </select>
           <button onclick="changeSelectedFontSize(1)" class="w-6 h-6 flex items-center justify-center text-slate-600 hover:bg-slate-100 rounded text-xs font-bold">+</button>
         </div>
@@ -461,11 +513,12 @@
 
         <!-- Line Height -->
         <select id="toolbar-line-height" onchange="updatePaperLineHeight(this.value)" class="h-8 px-2 text-xs font-semibold bg-white border border-slate-200 rounded-lg text-slate-700" title="تباعد الأسطر">
-          <option value="1.4">تباعد 1.4</option>
+          <option value="1.25">تباعد 1.25 (مضغوط)</option>
+          <option value="1.35">تباعد 1.35</option>
+          <option value="1.45" selected>تباعد 1.45</option>
           <option value="1.6">تباعد 1.6</option>
-          <option value="1.75" selected>تباعد 1.75</option>
+          <option value="1.75">تباعد 1.75</option>
           <option value="2.0">تباعد 2.0</option>
-          <option value="2.3">تباعد 2.3</option>
         </select>
 
         <!-- Math Symbols Popover Trigger -->
@@ -518,7 +571,7 @@
         </button>
         <button onclick="switchSidebarTab('header')" id="tab-btn-header" class="py-2 px-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-white/60 flex items-center justify-center gap-1.5">
           <i data-lucide="layout-template" class="w-3.5 h-3.5"></i>
-          <span>الترويسة</span>
+          <span>الشريط العلوي</span>
         </button>
         <button onclick="switchSidebarTab('page')" id="tab-btn-page" class="py-2 px-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-white/60 flex items-center justify-center gap-1.5">
           <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
@@ -571,9 +624,6 @@
             <span class="font-semibold text-slate-600">مجموع درجات الأسئلة:</span>
             <span id="calculated-total-marks" class="font-extrabold text-sm px-2.5 py-0.5 rounded-lg bg-emerald-100 text-emerald-800">0</span>
           </div>
-          <button onclick="syncTotalMarkToHeader()" class="w-full py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-[11px] font-bold text-slate-700 transition">
-            اعتماد المجموع في ترويسة الورقة
-          </button>
         </div>
 
         <!-- Danger / Reset Actions -->
@@ -589,34 +639,29 @@
         </div>
       </div>
 
-      <!-- Tab 2: Exam Header Settings -->
+      <!-- Tab 2: Thin Header Bar Settings -->
       <div id="sidebar-tab-header" class="hidden flex-1 overflow-y-auto p-3.5 space-y-3">
         <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-          <span class="text-xs font-bold text-slate-800">إظهار ترويسة الامتحان</span>
+          <span class="text-xs font-bold text-slate-800">إظهار الشريط المستطيل العلوي</span>
           <input type="checkbox" id="toggle-exam-header" checked onchange="toggleHeaderVisibility(this.checked)" class="w-4 h-4 accent-blue-600 rounded cursor-pointer" />
         </div>
 
-        <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-          <span class="text-xs font-bold text-slate-800">إظهار البسملة أعلى الورقة</span>
-          <input type="checkbox" id="toggle-basmala" checked onchange="toggleBasmalaVisibility(this.checked)" class="w-4 h-4 accent-blue-600 rounded cursor-pointer" />
-        </div>
-
-        <!-- Header Logo Upload -->
-        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-2">
+        <!-- Header Bar Size Controls -->
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2.5">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-800">شعار المدرسة / الوزارة</span>
-            <button onclick="removeHeaderLogo()" class="text-[11px] text-rose-600 hover:underline">إزالة</button>
+            <span class="text-xs font-bold text-slate-800">حجم الشريط العلوي والخط:</span>
+            <span id="header-bar-size-label" class="text-xs font-extrabold text-blue-700">13 px</span>
           </div>
-          <label class="w-full py-2 px-3 rounded-lg bg-white border border-dashed border-slate-300 hover:border-blue-500 text-xs font-semibold text-slate-600 flex items-center justify-center gap-2 cursor-pointer transition">
-            <i data-lucide="image-plus" class="w-4 h-4 text-blue-600"></i>
-            <span>رفع صورة شعار</span>
-            <input type="file" accept="image/*" onchange="uploadHeaderLogo(event)" class="hidden" />
-          </label>
+          <div class="flex items-center gap-2">
+            <button onclick="adjustThinHeaderSize(-1)" class="flex-1 py-1.5 px-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-xs font-bold text-slate-700">تصغير الشريط (-)</button>
+            <button onclick="adjustThinHeaderSize(1)" class="flex-1 py-1.5 px-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-xs font-bold text-slate-700">تكبير الشريط (+)</button>
+          </div>
+          <input type="range" id="header-bar-size-slider" min="9" max="22" value="13" oninput="setThinHeaderSize(this.value)" class="w-full accent-blue-600 cursor-pointer" />
         </div>
 
         <!-- Individual Header Fields Visibility -->
         <div class="space-y-1.5 pt-1">
-          <h4 class="text-xs font-extrabold text-slate-500 mb-2">تخصيص حقول الترويسة (إظهار / إخفاء):</h4>
+          <h4 class="text-xs font-extrabold text-slate-500 mb-2">حقول الشريط العلوي (إظهار / إخفاء):</h4>
           <div id="header-fields-toggles" class="space-y-1.5 text-xs"></div>
         </div>
       </div>
@@ -670,13 +715,13 @@
         <div>
           <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
             <span>هوامش الورقة:</span>
-            <span id="margin-value-label">14 mm</span>
+            <span id="margin-value-label">10 mm</span>
           </div>
-          <input type="range" min="6" max="26" value="14" oninput="setPaperMargin(this.value)" class="w-full accent-blue-600 cursor-pointer" />
+          <input type="range" min="4" max="22" value="10" oninput="setPaperMargin(this.value)" class="w-full accent-blue-600 cursor-pointer" />
           <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
-            <span>ضيقة (6mm)</span>
-            <span>عادية (14mm)</span>
-            <span>واسعة (26mm)</span>
+            <span>ضيقة (4mm)</span>
+            <span>مثالية (10mm)</span>
+            <span>واسعة (22mm)</span>
           </div>
         </div>
 
@@ -695,7 +740,7 @@
     </aside>
 
     <!-- Center Canvas: A4 Exam Paper Studio -->
-    <main class="paper-viewport flex-1 p-4 sm:p-8 overflow-y-auto flex flex-col items-center">
+    <main class="paper-viewport flex-1 p-4 sm:p-6 overflow-y-auto flex flex-col items-center">
       
       <!-- Mobile Exam Title Bar -->
       <div class="no-print no-preview xl:hidden w-full max-w-[210mm] mb-3 flex items-center justify-between bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs">
@@ -706,96 +751,56 @@
         <span id="mobile-autosave-status" class="text-[11px] text-emerald-600 font-bold">محفوظ تلقائياً</span>
       </div>
 
-      <!-- The Actual A4 Sheet -->
+      <!-- The Actual Single A4 Sheet -->
       <div id="exam-paper-sheet" class="a4-sheet">
         <div id="paper-inner-frame" class="paper-inner-frame frame-simple">
           
-          <!-- Top Section: Header + Questions -->
-          <div>
-            <!-- Basmala -->
-            <div id="paper-basmala" contenteditable="true" class="text-center font-bold text-sm sm:text-base mb-2 tracking-wide" style="color: var(--theme-primary);">
-              بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
-            </div>
+          <!-- Top Section: Thin Header Strip + Compact Questions -->
+          <div id="paper-content-wrapper">
 
-            <!-- Exam Official Header Box -->
-            <div id="paper-exam-header" class="rounded-xl border-2 p-3 mb-4 transition-colors" style="border-color: var(--theme-border); background-color: var(--theme-primary-light);">
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                
-                <!-- Right Column: Institution & Subject -->
-                <div class="space-y-1 text-xs sm:text-sm">
-                  <div data-field="school" class="flex items-baseline gap-1">
-                    <span class="font-bold text-slate-600 shrink-0">المدرسة:</span>
-                    <span id="hdr-school" contenteditable="true" data-placeholder="اكتب اسم المدرسة..." class="font-bold text-slate-900 flex-1">ثانوية المستقبل النموذجية</span>
-                  </div>
-                  <div data-field="subject" class="flex items-baseline gap-1">
-                    <span class="font-bold text-slate-600 shrink-0">المادة:</span>
-                    <span id="hdr-subject" contenteditable="true" data-placeholder="اسم المادة..." class="font-bold text-slate-900 flex-1">العلوم العامة</span>
-                  </div>
-                  <div data-field="grade" class="flex items-baseline gap-1">
-                    <span class="font-bold text-slate-600 shrink-0">الصف والشعبة:</span>
-                    <span id="hdr-grade" contenteditable="true" data-placeholder="الصف / الشعبة..." class="font-bold text-slate-900 flex-1">الثاني المتوسط / أ</span>
-                  </div>
-                </div>
-
-                <!-- Center Column: Logo & Exam Title / Term -->
-                <div class="flex flex-col items-center justify-center text-center space-y-1">
-                  <img id="hdr-logo-img" src="" alt="شعار" class="hidden h-12 w-auto object-contain mb-1" />
-                  <div data-field="term" class="font-extrabold text-sm sm:text-base px-3 py-0.5 rounded-lg bg-white/80 border" style="color: var(--theme-primary); border-color: var(--theme-border);">
-                    <span id="hdr-term" contenteditable="true" data-placeholder="الدور / نوع الامتحان...">امتحان نصف السنة</span>
-                  </div>
-                  <div data-field="year" class="text-xs font-bold text-slate-700">
-                    <span>للعام الدراسي: </span>
-                    <span id="hdr-year" contenteditable="true" data-placeholder="2026 - 2027">٢٠٢٦ - ٢٠٢٧ م</span>
-                  </div>
-                </div>
-
-                <!-- Left Column: Date, Time, Marks, Teacher -->
-                <div class="space-y-1 text-xs sm:text-sm sm:text-left">
-                  <div data-field="date" class="flex items-baseline sm:justify-end gap-1">
-                    <span class="font-bold text-slate-600 shrink-0">التاريخ:</span>
-                    <span id="hdr-date" contenteditable="true" data-placeholder=".... / .... / 2026" class="font-bold text-slate-900">٢٠٢٦/١١/٢١</span>
-                  </div>
-                  <div data-field="time" class="flex items-baseline sm:justify-end gap-1">
-                    <span class="font-bold text-slate-600 shrink-0">الزمن:</span>
-                    <span id="hdr-time" contenteditable="true" data-placeholder="ساعة ونصف" class="font-bold text-slate-900">ساعة ونصف</span>
-                  </div>
-                  <div data-field="marks" class="flex items-baseline sm:justify-end gap-1">
-                    <span class="font-bold text-slate-600 shrink-0">الدرجة الكلية:</span>
-                    <span id="hdr-marks" contenteditable="true" data-placeholder="100" class="font-extrabold px-1.5 rounded bg-white text-slate-900">٣٠ درجة</span>
-                  </div>
-                  <div data-field="teacher" class="flex items-baseline sm:justify-end gap-1">
-                    <span class="font-bold text-slate-600 shrink-0">المدرس:</span>
-                    <span id="hdr-teacher" contenteditable="true" data-placeholder="اسم المدرس..." class="font-bold text-slate-900">أ. أحمد المنصور</span>
-                  </div>
-                </div>
-
+            <!-- Thin Rectangular Top Strip (School, Grade, Section) with Resize Controls -->
+            <div id="paper-exam-header" class="thin-header-bar">
+              <div data-field="school" class="flex items-baseline gap-1">
+                <span class="font-bold text-slate-600 shrink-0">المدرسة:</span>
+                <span id="hdr-school" contenteditable="true" data-placeholder="اكتب اسم المدرسة..." class="font-extrabold text-slate-900">ثانوية المستقبل النموذجية</span>
               </div>
 
-              <!-- Student Name Strip (Optional) -->
-              <div data-field="student_bar" class="mt-2.5 pt-2 border-t border-slate-300/80 flex flex-wrap justify-between gap-2 text-xs font-bold text-slate-700">
-                <div>اسم الطالب الثلاثي: <span contenteditable="true" class="inline-block min-w-[160px] border-b border-dotted border-slate-500"></span></div>
-                <div>الرقم الامتحاني: <span contenteditable="true" class="inline-block min-w-[90px] border-b border-dotted border-slate-500"></span></div>
+              <div data-field="grade" class="flex items-baseline gap-1">
+                <span class="font-bold text-slate-600 shrink-0">الصف:</span>
+                <span id="hdr-grade" contenteditable="true" data-placeholder="اكتب الصف..." class="font-extrabold text-slate-900">الثاني المتوسط</span>
+              </div>
+
+              <div data-field="section" class="flex items-baseline gap-1">
+                <span class="font-bold text-slate-600 shrink-0">الشعبة:</span>
+                <span id="hdr-section" contenteditable="true" data-placeholder="أ / ب..." class="font-extrabold text-slate-900">أ</span>
+              </div>
+
+              <!-- Quick Resize Controls for the Thin Top Bar -->
+              <div class="header-size-controls no-print no-preview flex items-center gap-1 bg-white border border-slate-300 rounded-md px-1.5 py-0.5 shadow-xs mr-1">
+                <button onclick="adjustThinHeaderSize(-1)" class="px-1 text-[11px] font-extrabold text-slate-700 hover:bg-slate-100 rounded" title="تصغير الشريط العلوي">-</button>
+                <span class="text-[10px] font-bold text-slate-500">حجم</span>
+                <button onclick="adjustThinHeaderSize(1)" class="px-1 text-[11px] font-extrabold text-slate-700 hover:bg-slate-100 rounded" title="تكبير الشريط العلوي">+</button>
               </div>
             </div>
 
-            <!-- Dynamic Questions Container -->
-            <div id="questions-container" class="space-y-3"></div>
+            <!-- Dynamic Questions Container (Compact Spacing) -->
+            <div id="questions-container" class="space-y-1"></div>
 
             <!-- Quick Add Bar at Bottom of Questions -->
-            <div class="no-print no-preview mt-6 pt-4 border-t border-dashed border-slate-300 flex flex-wrap items-center justify-center gap-2">
-              <span class="text-xs font-bold text-slate-400 ml-1">إضافة سريعة:</span>
-              <button onclick="addBlock('define')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-xs font-bold text-slate-700 transition">+ عرّف</button>
-              <button onclick="addBlock('explain')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-xs font-bold text-slate-700 transition">+ علّل</button>
-              <button onclick="addBlock('mcq')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-xs font-bold text-slate-700 transition">+ اختر الإجابة</button>
-              <button onclick="addBlock('fill')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-xs font-bold text-slate-700 transition">+ املأ الفراغات</button>
-              <button onclick="addBlock('truefalse')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-xs font-bold text-slate-700 transition">+ صح أم خطأ</button>
-              <button onclick="addBlock('compare')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-xs font-bold text-slate-700 transition">+ قارن بين</button>
-              <button onclick="addBlock('custom')" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white transition">+ سؤال متنوع</button>
+            <div class="no-print no-preview mt-3 pt-2 border-t border-dashed border-slate-300 flex flex-wrap items-center justify-center gap-1.5">
+              <span class="text-[11px] font-bold text-slate-400 ml-1">إضافة سريعة:</span>
+              <button onclick="addBlock('define')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-xs font-bold text-slate-700 transition">+ عرّف</button>
+              <button onclick="addBlock('explain')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-xs font-bold text-slate-700 transition">+ علّل</button>
+              <button onclick="addBlock('mcq')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-xs font-bold text-slate-700 transition">+ اختر الإجابة</button>
+              <button onclick="addBlock('fill')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-xs font-bold text-slate-700 transition">+ املأ الفراغات</button>
+              <button onclick="addBlock('truefalse')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-xs font-bold text-slate-700 transition">+ صح أم خطأ</button>
+              <button onclick="addBlock('compare')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-xs font-bold text-slate-700 transition">+ قارن بين</button>
+              <button onclick="addBlock('custom')" class="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white transition">+ سؤال متنوع</button>
             </div>
           </div>
 
-          <!-- Paper Footer -->
-          <div id="paper-footer" class="mt-8 pt-3 border-t border-slate-300 flex items-center justify-between text-xs font-bold text-slate-600">
+          <!-- Compact Paper Footer -->
+          <div id="paper-footer" class="mt-2 pt-1.5 border-t border-slate-300 flex items-center justify-between text-[11px] font-bold text-slate-600">
             <span id="footer-teacher-note" contenteditable="true">ملاحظة: الإجابة على نفس الورقة وبخط واضح.</span>
             <span id="footer-closing-phrase" contenteditable="true" style="color: var(--theme-primary);">انتهت الأسئلة مع تمنياتنا لكم بالنجاح والتوفيق</span>
             <span class="text-slate-500">صفحة <span id="page-num-display">١</span></span>
@@ -804,7 +809,7 @@
         </div>
       </div>
 
-      <div class="no-print no-preview h-12"></div>
+      <div class="no-print no-preview h-10"></div>
     </main>
   </div>
 
@@ -823,10 +828,10 @@
 
   <script>
     /*************************************************************************
-     * مُمْتَحِن (Mumtahin) – Core Exam Editor & Print Engine
+     * مُمْتَحِن (Mumtahin) – Single A4 Sheet & Thin Header Edition
      *************************************************************************/
 
-    // 1. Question Templates Library (14 Types)
+    // 1. Question Templates Library (14 Types - Compact Sizes)
     const QUESTION_TYPES = [
       { id: 'define', label: 'عرّف ما يأتي', icon: 'book-open', title: 'عرّف ما يأتي:', body: '١. ....................................................................................<br>٢. ....................................................................................', marks: '٥ درجات', lines: 0 },
       { id: 'explain', label: 'علّل ما يأتي', icon: 'help-circle', title: 'علّل ما يأتي تعليلاً علمياً دقيقاً:', body: '١. ....................................................................................<br>٢. ....................................................................................', marks: '٦ درجات', lines: 0 },
@@ -835,11 +840,11 @@
       { id: 'mcq', label: 'اختر الإجابة', icon: 'check-circle', title: 'اختر الإجابة الصحيحة من بين الأقواس لكل مما يأتي:', body: '١. عاصمة الدولة العباسية هي: &nbsp;&nbsp; ( أ- دمشق &nbsp;&nbsp; ب- بغداد &nbsp;&nbsp; ج- القاهرة &nbsp;&nbsp; د- الكوفة )<br>٢. ناتج ضرب ٧ × ٨ يساوي: &nbsp;&nbsp; ( أ- ٥٤ &nbsp;&nbsp; ب- ٥٦ &nbsp;&nbsp; ج- ٦٤ &nbsp;&nbsp; د- ٤٨ )', marks: '٥ درجات', lines: 0 },
       { id: 'truefalse', label: 'صح أو خطأ', icon: 'check-square', title: 'ضع علامة ( ✓ ) أمام العبارة الصحيحة وعلامة ( ✗ ) أمام العبارة الخاطئة:', body: '١. ( &nbsp;&nbsp;&nbsp; ) تشرق الشمس من جهة الشرق وتغرب من جهة الغرب.<br>٢. ( &nbsp;&nbsp;&nbsp; ) الماء يتكون من اتحاد ذرتي أكسجين وذرة هيدروجين.', marks: '٤ درجات', lines: 0 },
       { id: 'compare', label: 'قارن بين', icon: 'columns', title: 'قارن بين كل مما يأتي:', body: '<table class="exam-table"><thead><tr><th>وجه المقارنة</th><th>العنصر الأول</th><th>العنصر الثاني</th></tr></thead><tbody><tr><td>التعريف / المفهوم</td><td></td><td></td></tr><tr><td>الخصائص / الأهمية</td><td></td><td></td></tr></tbody></table>', marks: '٦ درجات', lines: 0 },
-      { id: 'answer', label: 'أجب عن الأسئلة', icon: 'message-square', title: 'أجب عن الأسئلة التالية بإيجاز:', body: 'أ) اشرح باختصار أهمية الموضوع مع ذكر مثال واحد.<br>ب) ما النتائج المترتبة على ذلك؟', marks: '٦ درجات', lines: 2 },
+      { id: 'answer', label: 'أجب عن الأسئلة', icon: 'message-square', title: 'أجب عن الأسئلة التالية بإيجاز:', body: 'أ) اشرح باختصار أهمية الموضوع مع ذكر مثال واحد.<br>ب) ما النتائج المترتبة على ذلك؟', marks: '٦ درجات', lines: 1 },
       { id: 'difference', label: 'ما الفرق بين', icon: 'git-compare', title: 'ما الفرق بين كل من:', body: '١. ........................................ و ........................................ :<br>الإجابة: ....................................................................................', marks: '٤ درجات', lines: 1 },
       { id: 'match', label: 'أسئلة التوصيل', icon: 'link', title: 'صل العبارة في العمود (أ) بما يناسبها في العمود (ب):', body: '<table class="exam-table"><thead><tr><th style="width:45%">العمود (أ)</th><th style="width:10%">الحل</th><th style="width:45%">العمود (ب)</th></tr></thead><tbody><tr><td>١. العنصر الأول</td><td></td><td>أ. الوصف المقابل الأول</td></tr><tr><td>٢. العنصر الثاني</td><td></td><td>ب. الوصف المقابل الثاني</td></tr><tr><td>٣. العنصر الثالث</td><td></td><td>ج. الوصف المقابل الثالث</td></tr></tbody></table>', marks: '٥ درجات', lines: 0 },
       { id: 'order', label: 'أسئلة الترتيب', icon: 'arrow-up-down', title: 'رتّب الخطوات / الأحداث التالية ترتيباً صحيحاً:', body: '( .................................. ، .................................. ، .................................. )<br>الترتيب الصحيح: ١- .................... &nbsp; ٢- .................... &nbsp; ٣- ....................', marks: '٤ درجات', lines: 0 },
-      { id: 'essay', label: 'سؤال مقالي', icon: 'file-text', title: 'اكتب فقرة متكاملة حول الموضوع التالي:', body: 'تحدّث بأسلوبك الواضح عن الموضوع موضحاً الأسباب والنتائج:', marks: '١٠ درجات', lines: 4 },
+      { id: 'essay', label: 'سؤال مقالي', icon: 'file-text', title: 'اكتب فقرة متكاملة حول الموضوع التالي:', body: 'تحدّث بأسلوبك الواضح عن الموضوع موضحاً الأسباب والنتائج:', marks: '١٠ درجات', lines: 3 },
       { id: 'map', label: 'خرائط وصور', icon: 'image', title: 'تأمّل الشكل / الخريطة المرفقة ثم أجب عما يلي:', body: '١. ماذا يمثل الرقم (١) في الشكل؟ ..........................................<br>٢. اذكر وظيفة / موقع الجزء المشار إليه بالرقم (٢): ..........................................', marks: '٦ درجات', lines: 0, needsImagePlaceholder: true },
       { id: 'custom', label: 'سؤال متنوع', icon: 'sparkles', title: 'اكتب نص السؤال هنا:', body: 'اكتب تفاصيل السؤال أو الفروع هنا بحرية تامة...', marks: '٥ درجات', lines: 0 }
     ];
@@ -852,15 +857,8 @@
 
     const HEADER_FIELDS_CONFIG = [
       { key: 'school', label: 'اسم المدرسة' },
-      { key: 'subject', label: 'اسم المادة' },
-      { key: 'grade', label: 'الصف والشعبة' },
-      { key: 'term', label: 'الدور / نوع الامتحان' },
-      { key: 'year', label: 'العام الدراسي' },
-      { key: 'date', label: 'تاريخ الامتحان' },
-      { key: 'time', label: 'زمن الامتحان' },
-      { key: 'marks', label: 'الدرجة الكلية' },
-      { key: 'teacher', label: 'اسم المدرس' },
-      { key: 'student_bar', label: 'شريط اسم الطالب والرقم' }
+      { key: 'grade', label: 'الصف' },
+      { key: 'section', label: 'الشعبة' }
     ];
 
     // 2. Application State
@@ -869,16 +867,15 @@
       themeColor: '#1e3a8a',
       themeLight: '#eff6ff',
       fontFamily: "'Cairo', sans-serif",
-      lineHeight: '1.75',
+      lineHeight: '1.45',
       paperFrame: 'simple',
       orientation: 'portrait',
-      marginMm: 14,
+      marginMm: 10,
+      headerBarSizePx: 13,
       numberingStyle: 'ar',
-      digitMode: 'ar', // 'ar' or 'en'
+      digitMode: 'ar',
       showHeader: true,
-      showBasmala: true,
       showFooter: true,
-      logoDataUrl: '',
       hiddenHeaderFields: [],
       selectedBlockId: null,
       blocks: []
@@ -902,16 +899,8 @@
         const sb = document.getElementById('tools-sidebar');
         sb.classList.toggle('translate-x-full');
       });
-      // Close Export Dropdown on Outside Click (if present)
-      document.addEventListener('click', (e) => {
-        const wrapper = document.getElementById('export-menu-wrapper');
-        const dropdown = document.getElementById('export-dropdown');
-        if (wrapper && dropdown && !wrapper.contains(e.target)) {
-          dropdown.classList.add('hidden');
-        }
-      });
 
-      // Keyboard shortcuts (Ctrl+Z, Ctrl+Y)
+      // Keyboard shortcuts (Ctrl+Z)
       document.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
           if (document.activeElement.getAttribute('contenteditable') !== 'true') {
@@ -955,7 +944,7 @@
 
     // 4. Default Sample Exam or Load Autosave
     function loadFromAutosaveOrDefault() {
-      const saved = localStorage.getItem('mumtahin_autosave_v1');
+      const saved = localStorage.getItem('mumtahin_autosave_v2');
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
@@ -974,28 +963,15 @@
       appState.blocks = [
         {
           id: genId(),
-          kind: 'instruction',
-          title: 'ملاحظة هامة:',
-          body: 'أجب عن جميع الأسئلة الآتية بدقة، علماً أن الدرجة الكلية للامتحان (٣٠) درجة.',
-          marks: '',
-          bgColor: '#fffbeb',
-          titleSize: 14,
-          bodySize: 14,
-          lines: 0,
-          lineStyle: 'dotted',
-          image: ''
-        },
-        {
-          id: genId(),
           kind: 'question',
           qType: 'define',
           title: 'عرّف ثلاثة مما يأتي:',
           body: '١. الطاقة الحركية &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ٢. التبخر &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ٣. الخلية النباتية &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ٤. الجاذبية الأرضية',
           marks: '٦ درجات',
           bgColor: 'transparent',
-          titleSize: 15,
-          bodySize: 14,
-          lines: 3,
+          titleSize: 13.5,
+          bodySize: 13,
+          lines: 2,
           lineStyle: 'dotted',
           image: ''
         },
@@ -1007,8 +983,8 @@
           body: '١. وحدة قياس درجة الحرارة في النظام الدولي هي: &nbsp; ( أ- الكلفن &nbsp;&nbsp; ب- النيوتن &nbsp;&nbsp; ج- الجول )<br>٢. الغاز المسؤول عن عملية البناء الضوئي في النبات هو: &nbsp; ( أ- الأكسجين &nbsp;&nbsp; ب- ثاني أكسيد الكربون &nbsp;&nbsp; ج- النيتروجين )',
           marks: '٨ درجات',
           bgColor: 'transparent',
-          titleSize: 15,
-          bodySize: 14,
+          titleSize: 13.5,
+          bodySize: 13,
           lines: 0,
           lineStyle: 'dotted',
           image: ''
@@ -1021,8 +997,8 @@
           body: '<table class="exam-table"><thead><tr><th>وجه المقارنة</th><th>الفلزات</th><th>اللافلزات</th></tr></thead><tbody><tr><td>التوصيل الكهربائي</td><td></td><td></td></tr><tr><td>اللمعان والبريق</td><td></td><td></td></tr></tbody></table>',
           marks: '٨ درجات',
           bgColor: 'transparent',
-          titleSize: 15,
-          bodySize: 14,
+          titleSize: 13.5,
+          bodySize: 13,
           lines: 0,
           lineStyle: 'dotted',
           image: ''
@@ -1035,8 +1011,8 @@
           body: '١. تطفو قطعة الخشب فوق سطح الماء بينما يغوص مسمار الحديد.<br>٢. تُصنع أواني الطهي من الألمنيوم وتُصنع مقابضها من البلاستيك.',
           marks: '٨ درجات',
           bgColor: 'transparent',
-          titleSize: 15,
-          bodySize: 14,
+          titleSize: 13.5,
+          bodySize: 13,
           lines: 2,
           lineStyle: 'dotted',
           image: ''
@@ -1047,7 +1023,62 @@
       triggerAutosave();
     }
 
-    // 5. Block Management (Add, Edit, Delete, Duplicate, Move, Drag & Drop)
+    // 5. Thin Top Header Bar Resize Controls
+    function setThinHeaderSize(px) {
+      const size = Math.max(9, Math.min(22, Number(px) || 13));
+      appState.headerBarSizePx = size;
+      const py = Math.max(2, Math.round((size - 8) * 0.8));
+      document.documentElement.style.setProperty('--thin-bar-font', size + 'px');
+      document.documentElement.style.setProperty('--thin-bar-py', py + 'px');
+      const label = document.getElementById('header-bar-size-label');
+      const slider = document.getElementById('header-bar-size-slider');
+      if (label) label.textContent = size + ' px';
+      if (slider) slider.value = String(size);
+      triggerAutosave();
+    }
+
+    function adjustThinHeaderSize(delta) {
+      setThinHeaderSize((appState.headerBarSizePx || 13) + delta);
+    }
+
+    // 6. Auto-Fit All Questions into a Single A4 Page
+    function autoFitSingleA4() {
+      syncDomToState();
+      pushHistory();
+      const sheet = document.getElementById('exam-paper-sheet');
+      const frame = document.getElementById('paper-inner-frame');
+
+      // Reset to compact baseline
+      setPaperMargin(7);
+      updatePaperLineHeight('1.25');
+      document.getElementById('toolbar-line-height').value = '1.25';
+
+      let bodySize = 13;
+      let titleSize = 13.5;
+
+      const applySizes = (tSize, bSize) => {
+        appState.blocks.forEach(b => {
+          b.titleSize = tSize;
+          b.bodySize = bSize;
+        });
+        renderBlocks();
+      };
+
+      applySizes(titleSize, bodySize);
+
+      // Iteratively shrink font size slightly until content fits cleanly inside A4 height
+      while (frame.scrollHeight > frame.clientHeight && bodySize > 9.5) {
+        bodySize -= 0.5;
+        titleSize -= 0.5;
+        applySizes(titleSize, bodySize);
+      }
+
+      document.getElementById('toolbar-font-size').value = String(Math.round(bodySize));
+      triggerAutosave();
+      showToast('تم ضبط جميع الأسئلة لتظهر كاملة في ورقة A4 واحدة!', 'success');
+    }
+
+    // 7. Block Management (Add, Edit, Delete, Duplicate, Move, Drag & Drop)
     function genId() {
       return 'blk_' + Math.random().toString(36).substring(2, 9);
     }
@@ -1095,8 +1126,8 @@
           body: 'اكتب نص التعليمات أو الملاحظة الموجهة للطلاب هنا...',
           marks: '',
           bgColor: '#fffbeb',
-          titleSize: 14,
-          bodySize: 14,
+          titleSize: 13,
+          bodySize: 13,
           lines: 0,
           lineStyle: 'dotted',
           image: ''
@@ -1109,8 +1140,8 @@
           body: 'فقرة نصية حرة غير مرقمة (يمكن استخدامها لقطعة القراءة الخارجية أو نص المسألة)...',
           marks: '',
           bgColor: 'transparent',
-          titleSize: 15,
-          bodySize: 14,
+          titleSize: 13.5,
+          bodySize: 13,
           lines: 0,
           lineStyle: 'dotted',
           image: ''
@@ -1123,8 +1154,8 @@
           body: '',
           marks: '',
           bgColor: 'transparent',
-          titleSize: 14,
-          bodySize: 14,
+          titleSize: 13,
+          bodySize: 13,
           lines: 0,
           lineStyle: 'solid',
           image: ''
@@ -1139,8 +1170,8 @@
           body: template.body,
           marks: template.marks,
           bgColor: 'transparent',
-          titleSize: 15,
-          bodySize: 14,
+          titleSize: 13.5,
+          bodySize: 13,
           lines: template.lines || 0,
           lineStyle: 'dotted',
           image: template.needsImagePlaceholder ? 'placeholder' : ''
@@ -1158,7 +1189,6 @@
       calculateTotalMarks();
       triggerAutosave();
 
-      // Close mobile sidebar if open
       document.getElementById('tools-sidebar').classList.add('translate-x-full');
       showToast('تمت الإضافة إلى ورقة الامتحان', 'success');
     }
@@ -1221,7 +1251,8 @@
       pushHistory();
       const blk = appState.blocks.find(b => b.id === blockId);
       if (!blk) return;
-      blk.titleSize = Math.max(11, Math.min(30, (blk.titleSize || 15) + delta));
+      blk.titleSize = Math.max(10, Math.min(26, (blk.titleSize || 13.5) + delta));
+      blk.bodySize = Math.max(10, Math.min(26, (blk.bodySize || 13) + delta));
       renderBlocks();
       triggerAutosave();
     }
@@ -1270,7 +1301,7 @@
       showToast('تم إدراج جدول قابل للتحرير', 'success');
     }
 
-    // 6. Numbering Helper
+    // 8. Numbering Helper
     function getQuestionLabel(index) {
       const style = appState.numberingStyle;
       if (style === 'manual') return '';
@@ -1305,18 +1336,12 @@
         b.marks = converter(b.marks);
       });
 
-      // Also convert header fields
-      ['hdr-year', 'hdr-date', 'hdr-marks'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerText = converter(el.innerText);
-      });
-
       renderBlocks();
       triggerAutosave();
       showToast(appState.digitMode === 'ar' ? 'تم تحويل الأرقام إلى العربية (١٢٣)' : 'تم تحويل الأرقام إلى الإنجليزية (123)', 'success');
     }
 
-    // 7. Render All Blocks inside A4 Sheet
+    // 9. Render All Blocks inside Single A4 Sheet
     function renderBlocks() {
       const container = document.getElementById('questions-container');
       let questionCounter = 0;
@@ -1325,43 +1350,42 @@
         const isSelected = appState.selectedBlockId === blk.id ? 'selected-block' : '';
         const bgStyle = blk.bgColor && blk.bgColor !== 'transparent' ? `background-color: ${blk.bgColor};` : '';
 
-        // Floating Mini Toolbar for each block
         const controlsHtml = `
-          <div class="block-controls no-print no-preview flex flex-wrap items-center gap-1 bg-white border border-slate-200 shadow-md rounded-xl px-2 py-1 mb-1.5 text-[11px] font-bold text-slate-600">
-            <span class="drag-handle cursor-grab active:cursor-grabbing p-1 hover:bg-slate-100 rounded text-slate-400" title="اسحب لإعادة الترتيب">
+          <div class="block-controls no-print no-preview flex flex-wrap items-center gap-1 bg-white border border-slate-200 shadow-md rounded-xl px-2 py-0.5 mb-1 text-[11px] font-bold text-slate-600">
+            <span class="drag-handle cursor-grab active:cursor-grabbing p-0.5 hover:bg-slate-100 rounded text-slate-400" title="اسحب لإعادة الترتيب">
               <i data-lucide="grip-vertical" class="w-3.5 h-3.5"></i>
             </span>
-            <button onclick="moveBlock('${blk.id}', -1)" class="p-1 hover:bg-slate-100 rounded" title="تحريك للأعلى"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
-            <button onclick="moveBlock('${blk.id}', 1)" class="p-1 hover:bg-slate-100 rounded" title="تحريك للأسفل"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i></button>
+            <button onclick="moveBlock('${blk.id}', -1)" class="p-0.5 hover:bg-slate-100 rounded" title="تحريك للأعلى"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
+            <button onclick="moveBlock('${blk.id}', 1)" class="p-0.5 hover:bg-slate-100 rounded" title="تحريك للأسفل"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i></button>
             <div class="h-3.5 w-[1px] bg-slate-200"></div>
             ${blk.kind === 'question' ? `
-              <button onclick="adjustTitleFontSize('${blk.id}', 1)" class="px-1.5 py-0.5 hover:bg-slate-100 rounded" title="تكبير عنوان السؤال">A+</button>
-              <button onclick="adjustTitleFontSize('${blk.id}', -1)" class="px-1.5 py-0.5 hover:bg-slate-100 rounded" title="تصغير عنوان السؤال">A-</button>
+              <button onclick="adjustTitleFontSize('${blk.id}', 1)" class="px-1.5 py-0.5 hover:bg-slate-100 rounded" title="تكبير السؤال">A+</button>
+              <button onclick="adjustTitleFontSize('${blk.id}', -1)" class="px-1.5 py-0.5 hover:bg-slate-100 rounded" title="تصغير السؤال">A-</button>
               <button onclick="adjustAnswerLines('${blk.id}', 1)" class="px-1.5 py-0.5 hover:bg-blue-50 text-blue-700 rounded" title="إضافة سطر إجابة">+ سطر</button>
               ${blk.lines > 0 ? `<button onclick="adjustAnswerLines('${blk.id}', -1)" class="px-1.5 py-0.5 hover:bg-slate-100 rounded" title="إزالة سطر">- سطر</button>
-              <button onclick="toggleLineStyle('${blk.id}')" class="px-1.5 py-0.5 hover:bg-slate-100 rounded" title="تغيير نمط السطر (منقط/متصل)">نمط السطر</button>` : ''}
-              <button onclick="triggerBlockImageUpload('${blk.id}')" class="p-1 hover:bg-slate-100 rounded text-indigo-600" title="إدراج صورة داخل السؤال"><i data-lucide="image" class="w-3.5 h-3.5"></i></button>
-              <button onclick="insertTableIntoBlock('${blk.id}')" class="p-1 hover:bg-slate-100 rounded text-emerald-600" title="إدراج جدول مقارنة"><i data-lucide="table" class="w-3.5 h-3.5"></i></button>
-              <button onclick="copySingleQuestion('${blk.id}')" class="p-1 hover:bg-slate-100 rounded text-sky-600" title="نسخ هذا السؤال"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+              <button onclick="toggleLineStyle('${blk.id}')" class="px-1.5 py-0.5 hover:bg-slate-100 rounded" title="تغيير نمط السطر">نمط السطر</button>` : ''}
+              <button onclick="triggerBlockImageUpload('${blk.id}')" class="p-0.5 hover:bg-slate-100 rounded text-indigo-600" title="إدراج صورة"><i data-lucide="image" class="w-3.5 h-3.5"></i></button>
+              <button onclick="insertTableIntoBlock('${blk.id}')" class="p-0.5 hover:bg-slate-100 rounded text-emerald-600" title="إدراج جدول"><i data-lucide="table" class="w-3.5 h-3.5"></i></button>
+              <button onclick="copySingleQuestion('${blk.id}')" class="p-0.5 hover:bg-slate-100 rounded text-sky-600" title="نسخ السؤال"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
             ` : ''}
-            <button onclick="duplicateBlock('${blk.id}')" class="p-1 hover:bg-slate-100 rounded" title="تكرار"><i data-lucide="copy-plus" class="w-3.5 h-3.5"></i></button>
-            <button onclick="addBlock('custom', ${idx})" class="p-1 hover:bg-emerald-50 text-emerald-600 rounded" title="إضافة سؤال بعد هذا"><i data-lucide="plus" class="w-3.5 h-3.5"></i></button>
-            <button onclick="deleteBlock('${blk.id}')" class="p-1 hover:bg-rose-50 text-rose-600 rounded mr-auto" title="حذف"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+            <button onclick="duplicateBlock('${blk.id}')" class="p-0.5 hover:bg-slate-100 rounded" title="تكرار"><i data-lucide="copy-plus" class="w-3.5 h-3.5"></i></button>
+            <button onclick="addBlock('custom', ${idx})" class="p-0.5 hover:bg-emerald-50 text-emerald-600 rounded" title="إضافة سؤال بعد هذا"><i data-lucide="plus" class="w-3.5 h-3.5"></i></button>
+            <button onclick="deleteBlock('${blk.id}')" class="p-0.5 hover:bg-rose-50 text-rose-600 rounded mr-auto" title="حذف"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
           </div>
         `;
 
         if (blk.kind === 'divider') {
           return `
-            <div data-block-id="${blk.id}" draggable="true" onclick="selectBlock('${blk.id}')" class="question-block py-2 px-1 ${isSelected}">
+            <div data-block-id="${blk.id}" draggable="true" onclick="selectBlock('${blk.id}')" class="question-block ${isSelected}">
               ${controlsHtml}
-              <hr class="border-t-2 border-slate-400 my-1" />
+              <hr class="border-t border-slate-400 my-1" />
             </div>
           `;
         }
 
         if (blk.kind === 'instruction') {
           return `
-            <div data-block-id="${blk.id}" draggable="true" onclick="selectBlock('${blk.id}')" class="question-block p-2.5 rounded-xl border border-amber-300/80 ${isSelected}" style="${bgStyle}">
+            <div data-block-id="${blk.id}" draggable="true" onclick="selectBlock('${blk.id}')" class="question-block rounded-lg border border-amber-300/80 ${isSelected}" style="${bgStyle}">
               ${controlsHtml}
               <div class="flex items-start gap-2">
                 <span contenteditable="true" onblur="updateBlockField('${blk.id}', 'title', this.innerHTML)" class="font-extrabold text-amber-900 shrink-0" style="font-size:${blk.titleSize}px">${blk.title}</span>
@@ -1373,53 +1397,52 @@
 
         if (blk.kind === 'unnumbered') {
           return `
-            <div data-block-id="${blk.id}" draggable="true" onclick="selectBlock('${blk.id}')" class="question-block p-2.5 rounded-xl ${isSelected}" style="${bgStyle}">
+            <div data-block-id="${blk.id}" draggable="true" onclick="selectBlock('${blk.id}')" class="question-block rounded-lg ${isSelected}" style="${bgStyle}">
               ${controlsHtml}
               <div contenteditable="true" onblur="updateBlockField('${blk.id}', 'body', this.innerHTML)" class="text-slate-800" style="font-size:${blk.bodySize}px">${blk.body}</div>
             </div>
           `;
         }
 
-        // Standard Question Block
         const qLabel = getQuestionLabel(questionCounter++);
         const lineClass = blk.lineStyle === 'solid' ? 'answer-line-solid' : 'answer-line-dotted';
-        const linesHtml = blk.lines > 0 ? `<div class="mt-1 space-y-0.5">${Array(blk.lines).fill(`<div class="${lineClass}"></div>`).join('')}</div>` : '';
+        const linesHtml = blk.lines > 0 ? `<div class="mt-0.5">${Array(blk.lines).fill(`<div class="${lineClass}"></div>`).join('')}</div>` : '';
 
         let imageHtml = '';
         if (blk.image === 'placeholder') {
           imageHtml = `
-            <div class="no-print my-2 p-4 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 text-center">
-              <button onclick="triggerBlockImageUpload('${blk.id}')" class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-700 hover:border-blue-500">
+            <div class="no-print my-1.5 p-3 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 text-center">
+              <button onclick="triggerBlockImageUpload('${blk.id}')" class="px-3 py-1 rounded-lg bg-white border border-slate-300 text-xs font-bold text-slate-700 hover:border-blue-500">
                 اضغط هنا لرفع الخريطة أو الصورة التوضيحية
               </button>
             </div>
           `;
         } else if (blk.image) {
           imageHtml = `
-            <div class="my-2.5 relative inline-block group max-w-full">
-              <img src="${blk.image}" alt="صورة السؤال" class="max-h-56 rounded-lg border border-slate-200 object-contain mx-auto" />
-              <button onclick="removeBlockImage('${blk.id}')" class="no-print hidden group-hover:flex absolute top-1.5 left-1.5 w-6 h-6 rounded-full bg-rose-600 text-white items-center justify-center text-xs shadow">✕</button>
+            <div class="my-1.5 relative inline-block group max-w-full">
+              <img src="${blk.image}" alt="صورة السؤال" class="max-h-40 rounded-lg border border-slate-200 object-contain mx-auto" />
+              <button onclick="removeBlockImage('${blk.id}')" class="no-print hidden group-hover:flex absolute top-1 left-1 w-6 h-6 rounded-full bg-rose-600 text-white items-center justify-center text-xs shadow">✕</button>
             </div>
           `;
         }
 
         return `
-          <div data-block-id="${blk.id}" draggable="true" onclick="selectBlock('${blk.id}')" class="question-block p-2.5 rounded-xl border border-transparent hover:border-slate-200 ${isSelected}" style="${bgStyle}">
+          <div data-block-id="${blk.id}" draggable="true" onclick="selectBlock('${blk.id}')" class="question-block border border-transparent hover:border-slate-200 ${isSelected}" style="${bgStyle}">
             ${controlsHtml}
             
             <!-- Question Header Row -->
-            <div class="flex items-start justify-between gap-2 mb-1">
+            <div class="flex items-start justify-between gap-2 mb-0.5">
               <div class="flex items-baseline gap-1.5 flex-1">
                 ${qLabel ? `<span class="font-extrabold shrink-0" style="color: var(--theme-primary); font-size:${blk.titleSize}px">${qLabel}</span>` : ''}
                 <div contenteditable="true" onblur="updateBlockField('${blk.id}', 'title', this.innerHTML)" class="font-bold text-slate-900 flex-1" style="font-size:${blk.titleSize}px">${blk.title}</div>
               </div>
               <div class="shrink-0">
-                <span contenteditable="true" onblur="updateBlockField('${blk.id}', 'marks', this.innerText); calculateTotalMarks();" data-placeholder="(الدرجة)" class="text-xs font-extrabold px-2 py-0.5 rounded-md border" style="color: var(--theme-primary); border-color: var(--theme-border); background-color: var(--theme-primary-light);">${blk.marks}</span>
+                <span contenteditable="true" onblur="updateBlockField('${blk.id}', 'marks', this.innerText); calculateTotalMarks();" data-placeholder="(الدرجة)" class="text-[11px] font-extrabold px-1.5 py-0.5 rounded border" style="color: var(--theme-primary); border-color: var(--theme-border); background-color: var(--theme-primary-light);">${blk.marks}</span>
               </div>
             </div>
 
             <!-- Question Body -->
-            <div contenteditable="true" onblur="updateBlockField('${blk.id}', 'body', this.innerHTML)" class="text-slate-800 pr-2 sm:pr-4" style="font-size:${blk.bodySize}px">${blk.body}</div>
+            <div contenteditable="true" onblur="updateBlockField('${blk.id}', 'body', this.innerHTML)" class="text-slate-800 pr-2 sm:pr-3" style="font-size:${blk.bodySize}px">${blk.body}</div>
 
             ${imageHtml}
             ${linesHtml}
@@ -1465,12 +1488,11 @@
       });
     }
 
-    // 8. Drag & Drop Reordering
+    // 10. Drag & Drop Reordering
     function attachDragAndDropEvents() {
       const items = document.querySelectorAll('.question-block');
       items.forEach(item => {
         item.addEventListener('dragstart', (e) => {
-          // Only allow drag if not actively typing inside editable text
           if (document.activeElement && document.activeElement.getAttribute('contenteditable') === 'true') {
             e.preventDefault();
             return;
@@ -1517,7 +1539,7 @@
       });
     }
 
-    // 9. Rich Text Formatting Commands
+    // 11. Rich Text Formatting Commands
     function execFormat(command) {
       document.execCommand(command, false, null);
       triggerAutosave();
@@ -1547,16 +1569,24 @@
         const blk = appState.blocks.find(b => b.id === appState.selectedBlockId);
         if (blk) {
           blk.bodySize = Number(sizePx);
+          blk.titleSize = Number(sizePx) + 0.5;
           renderBlocks();
         }
+      } else {
+        // Apply to all questions if none selected
+        appState.blocks.forEach(b => {
+          b.bodySize = Number(sizePx);
+          b.titleSize = Number(sizePx) + 0.5;
+        });
+        renderBlocks();
       }
       triggerAutosave();
     }
 
     function changeSelectedFontSize(delta) {
       const select = document.getElementById('toolbar-font-size');
-      const current = Number(select.value) || 14;
-      const next = Math.max(11, Math.min(32, current + delta));
+      const current = Number(select.value) || 13;
+      const next = Math.max(10, Math.min(24, current + delta));
       select.value = String(next);
       applyFontSize(next);
     }
@@ -1611,7 +1641,7 @@
       triggerAutosave();
     }
 
-    // 10. Marks Calculator
+    // 12. Marks Calculator
     function calculateTotalMarks() {
       syncDomToState();
       let sum = 0;
@@ -1627,15 +1657,7 @@
       return display;
     }
 
-    function syncTotalMarkToHeader() {
-      const total = calculateTotalMarks();
-      const suffix = appState.digitMode === 'ar' ? ' درجة' : ' Marks';
-      document.getElementById('hdr-marks').innerText = total + suffix;
-      triggerAutosave();
-      showToast('تم تحديث الدرجة الكلية في ترويسة الورقة', 'success');
-    }
-
-    // 11. Sidebar Tabs & Page/Header Customization
+    // 13. Sidebar Tabs & Page/Header Customization
     function switchSidebarTab(tab) {
       ['questions', 'header', 'page'].forEach(t => {
         document.getElementById(`sidebar-tab-${t}`).classList.toggle('hidden', t !== tab);
@@ -1661,12 +1683,6 @@
       triggerAutosave();
     }
 
-    function toggleBasmalaVisibility(checked) {
-      appState.showBasmala = checked;
-      document.getElementById('paper-basmala').classList.toggle('hidden', !checked);
-      triggerAutosave();
-    }
-
     function toggleFooterVisibility(checked) {
       appState.showFooter = checked;
       document.getElementById('paper-footer').classList.toggle('hidden', !checked);
@@ -1686,29 +1702,6 @@
       } else if (isVisible) {
         appState.hiddenHeaderFields = appState.hiddenHeaderFields.filter(k => k !== fieldKey);
       }
-      triggerAutosave();
-    }
-
-    function uploadHeaderLogo(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        appState.logoDataUrl = e.target.result;
-        const img = document.getElementById('hdr-logo-img');
-        img.src = e.target.result;
-        img.classList.remove('hidden');
-        triggerAutosave();
-        showToast('تم إضافة شعار الترويسة بنجاح', 'success');
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function removeHeaderLogo() {
-      appState.logoDataUrl = '';
-      const img = document.getElementById('hdr-logo-img');
-      img.src = '';
-      img.classList.add('hidden');
       triggerAutosave();
     }
 
@@ -1765,7 +1758,7 @@
       }
     }
 
-    // 12. Copy Functions (Single Question & All Questions)
+    // 14. Copy Functions (Single Question & All Questions)
     function copyRichAndPlainText(htmlContent, plainContent) {
       try {
         const listener = function(e) {
@@ -1832,7 +1825,7 @@
           plainParts.push(d.innerText);
         } else if (blk.kind === 'question') {
           const lbl = getQuestionLabel(qIdx++);
-          htmlParts.push(`<div style="margin-bottom:12px;"><strong>${lbl} ${blk.title}</strong> <span>(${blk.marks})</span><div>${blk.body}</div></div>`);
+          htmlParts.push(`<div style="margin-bottom:8px;"><strong>${lbl} ${blk.title}</strong> <span>(${blk.marks})</span><div>${blk.body}</div></div>`);
           const d = document.createElement('div');
           d.innerHTML = `${lbl} ${blk.title} (${blk.marks})\n${blk.body.replace(/<br\s*\/?>/gi, '\n')}`;
           plainParts.push(d.innerText);
@@ -1845,7 +1838,7 @@
       }
     }
 
-    // 13. Print & Real PDF Export
+    // 15. Print & Real Single-Page A4 PDF Export
     function triggerFileDownload(blob, fileName) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -1876,9 +1869,7 @@
         return;
       }
 
-      showToast('جاري تجهيز وتنزيل ملف PDF عالي الجودة...', 'info');
-
-      // Temporarily hide UI controls
+      showToast('جاري تجهيز وتنزيل ملف PDF في ورقة A4 واحدة...', 'info');
       document.body.classList.add('preview-mode');
 
       const opt = {
@@ -1886,24 +1877,24 @@
         filename: fileName,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: appState.orientation }
+        jsPDF: { unit: 'mm', format: 'a4', orientation: appState.orientation },
+        pagebreak: { mode: ['avoid-all'] }
       };
 
       window.html2pdf().set(opt).from(sheet).save().then(() => {
         document.body.classList.remove('preview-mode');
-        showToast('تم تنزيل ملف PDF بنجاح!', 'success');
+        showToast('تم تنزيل ملف PDF بنجاح في ورقة A4 واحدة!', 'success');
       }).catch(err => {
         document.body.classList.remove('preview-mode');
         console.error(err);
-        showToast('جاري فتح الطباعة المباشرة لحفظ PDF...', 'info');
         window.print();
       });
     }
 
-    // Fallback Word-compatible HTML/MHTML Generator (works 100% offline/sandboxed)
+    // Fallback Word-compatible HTML Generator
     function exportWordHtmlFallback(fileNameBase) {
       const sheetClone = document.getElementById('exam-paper-sheet').cloneNode(true);
-      sheetClone.querySelectorAll('.no-print, .block-controls, .add-between-btn').forEach(el => el.remove());
+      sheetClone.querySelectorAll('.no-print, .block-controls, .header-size-controls, .add-between-btn').forEach(el => el.remove());
       sheetClone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
 
       const wordHtml = `
@@ -1914,13 +1905,13 @@
           <meta charset='utf-8'>
           <title>${fileNameBase}</title>
           <style>
-            @page { size: A4; margin: 1.5cm; }
-            body { font-family: 'Cairo', 'Traditional Arabic', Arial, sans-serif; direction: rtl; text-align: right; line-height: 1.7; }
-            table { width: 100%; border-collapse: collapse; margin: 8px 0; }
-            th, td { border: 1px solid #475569; padding: 6px 8px; text-align: right; }
+            @page { size: A4; margin: 1cm; }
+            body { font-family: 'Cairo', 'Traditional Arabic', Arial, sans-serif; direction: rtl; text-align: right; line-height: 1.4; font-size: 13px; }
+            table { width: 100%; border-collapse: collapse; margin: 4px 0; }
+            th, td { border: 1px solid #475569; padding: 4px 6px; text-align: right; }
             th { background-color: ${appState.themeLight}; color: ${appState.themeColor}; }
-            .answer-line-dotted { border-bottom: 1px dotted #64748b; height: 24px; }
-            .answer-line-solid { border-bottom: 1px solid #64748b; height: 24px; }
+            .answer-line-dotted { border-bottom: 1px dotted #64748b; height: 18px; }
+            .answer-line-solid { border-bottom: 1px solid #64748b; height: 18px; }
           </style>
         </head>
         <body>${sheetClone.innerHTML}</body>
@@ -1932,7 +1923,7 @@
       showToast('تم تنزيل ملف Word القابل للتعديل بنجاح!', 'success');
     }
 
-    // 14. Real Microsoft Word (.docx) Export Engine using docx.js
+    // 16. Real Microsoft Word (.docx) Export Engine with Thin Top Header Bar
     async function exportToDOCX() {
       syncDomToState();
       const fileNameBase = document.getElementById('exam-doc-title').value.trim() || 'امتحان_ممتحن';
@@ -1954,62 +1945,21 @@
         const lightHex = appState.themeLight.replace('#', '');
         const children = [];
 
-        // 1. Basmala
-        if (appState.showBasmala) {
-          children.push(
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              bidirectional: true,
-              spacing: { after: 140 },
-              children: [
-                new TextRun({
-                  text: document.getElementById('paper-basmala').innerText.trim(),
-                  bold: true,
-                  size: 26,
-                  color: primaryHex,
-                  font: 'Cairo'
-                })
-              ]
-            })
-          );
-        }
-
-        // 2. Exam Header Table (RTL 3 columns)
+        // 1. Thin Rectangular Top Bar (School, Grade, Section)
         if (appState.showHeader) {
-          const getFieldText = (key, prefix) => {
-            if (appState.hiddenHeaderFields.includes(key)) return '';
-            const val = document.getElementById(`hdr-${key}`)?.innerText.trim() || '';
-            return val ? `${prefix} ${val}` : '';
-          };
+          const schoolVal = !appState.hiddenHeaderFields.includes('school')
+            ? `المدرسة: ${document.getElementById('hdr-school')?.innerText.trim() || ''}`
+            : '';
+          const gradeVal = !appState.hiddenHeaderFields.includes('grade')
+            ? `الصف: ${document.getElementById('hdr-grade')?.innerText.trim() || ''}`
+            : '';
+          const sectionVal = !appState.hiddenHeaderFields.includes('section')
+            ? `الشعبة: ${document.getElementById('hdr-section')?.innerText.trim() || ''}`
+            : '';
 
-          const rightLines = [
-            getFieldText('school', 'المدرسة:'),
-            getFieldText('subject', 'المادة:'),
-            getFieldText('grade', 'الصف والشعبة:')
-          ].filter(Boolean);
+          const headerFontHalfPts = Math.round((appState.headerBarSizePx || 13) * 1.6);
 
-          const centerLines = [
-            getFieldText('term', ''),
-            getFieldText('year', 'العام الدراسي:')
-          ].filter(Boolean);
-
-          const leftLines = [
-            getFieldText('date', 'التاريخ:'),
-            getFieldText('time', 'الزمن:'),
-            getFieldText('marks', 'الدرجة الكلية:'),
-            getFieldText('teacher', 'المدرس:')
-          ].filter(Boolean);
-
-          const makeCellParagraphs = (lines, align) => lines.map(line =>
-            new Paragraph({
-              alignment: align,
-              bidirectional: true,
-              spacing: { after: 60 },
-              children: [new TextRun({ text: line, bold: true, size: 22, font: 'Cairo' })]
-            })
-          );
-
-          const headerTable = new Table({
+          const thinHeaderTable = new Table({
             width: { size: 100, type: WidthType.PERCENTAGE },
             visuallyRightToLeft: true,
             borders: {
@@ -2024,55 +1974,57 @@
               new TableRow({
                 children: [
                   new TableCell({
-                    width: { size: 35, type: WidthType.PERCENTAGE },
+                    width: { size: 44, type: WidthType.PERCENTAGE },
                     shading: { fill: lightHex, type: ShadingType.CLEAR },
-                    children: makeCellParagraphs(rightLines, AlignmentType.RIGHT)
+                    children: [
+                      new Paragraph({
+                        alignment: AlignmentType.RIGHT,
+                        bidirectional: true,
+                        spacing: { before: 20, after: 20 },
+                        children: [new TextRun({ text: schoolVal, bold: true, size: headerFontHalfPts, font: 'Cairo' })]
+                      })
+                    ]
                   }),
                   new TableCell({
-                    width: { size: 30, type: WidthType.PERCENTAGE },
+                    width: { size: 34, type: WidthType.PERCENTAGE },
                     shading: { fill: lightHex, type: ShadingType.CLEAR },
-                    children: makeCellParagraphs(centerLines, AlignmentType.CENTER)
+                    children: [
+                      new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        bidirectional: true,
+                        spacing: { before: 20, after: 20 },
+                        children: [new TextRun({ text: gradeVal, bold: true, size: headerFontHalfPts, font: 'Cairo' })]
+                      })
+                    ]
                   }),
                   new TableCell({
-                    width: { size: 35, type: WidthType.PERCENTAGE },
+                    width: { size: 22, type: WidthType.PERCENTAGE },
                     shading: { fill: lightHex, type: ShadingType.CLEAR },
-                    children: makeCellParagraphs(leftLines, AlignmentType.LEFT)
+                    children: [
+                      new Paragraph({
+                        alignment: AlignmentType.LEFT,
+                        bidirectional: true,
+                        spacing: { before: 20, after: 20 },
+                        children: [new TextRun({ text: sectionVal, bold: true, size: headerFontHalfPts, font: 'Cairo' })]
+                      })
+                    ]
                   })
                 ]
               })
             ]
           });
 
-          children.push(headerTable);
-
-          if (!appState.hiddenHeaderFields.includes('student_bar')) {
-            children.push(
-              new Paragraph({
-                alignment: AlignmentType.RIGHT,
-                bidirectional: true,
-                spacing: { before: 120, after: 200 },
-                border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' } },
-                children: [
-                  new TextRun({
-                    text: 'اسم الطالب الثلاثي: ....................................................      الرقم الامتحاني: ..........................',
-                    bold: true,
-                    size: 21,
-                    font: 'Cairo'
-                  })
-                ]
-              })
-            );
-          }
+          children.push(thinHeaderTable);
         }
 
-        // 3. Questions & Blocks
+        // 2. Compact Questions & Blocks
         let qCounter = 0;
         appState.blocks.forEach(blk => {
           if (blk.kind === 'divider') {
             children.push(
               new Paragraph({
-                border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: '64748B' } },
-                spacing: { before: 120, after: 120 },
+                border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '64748B' } },
+                spacing: { before: 60, after: 60 },
                 children: []
               })
             );
@@ -2085,11 +2037,11 @@
               new Paragraph({
                 alignment: AlignmentType.RIGHT,
                 bidirectional: true,
-                spacing: { before: 100, after: 120 },
+                spacing: { before: 60, after: 60 },
                 shading: blk.kind === 'instruction' ? { fill: 'FFFBEB', type: ShadingType.CLEAR } : undefined,
                 children: [
-                  ...(blk.title ? [new TextRun({ text: stripTags(blk.title) + ' ', bold: true, size: 23, color: '92400E', font: 'Cairo' })] : []),
-                  new TextRun({ text: cleanBody.join('\n'), size: 22, font: 'Cairo' })
+                  ...(blk.title ? [new TextRun({ text: stripTags(blk.title) + ' ', bold: true, size: 21, color: '92400E', font: 'Cairo' })] : []),
+                  new TextRun({ text: cleanBody.join('\n'), size: 20, font: 'Cairo' })
                 ]
               })
             );
@@ -2101,22 +2053,20 @@
             const titleText = stripTags(blk.title);
             const marksText = blk.marks ? `   [${blk.marks}]` : '';
 
-            // Question Title Paragraph
             children.push(
               new Paragraph({
                 alignment: AlignmentType.RIGHT,
                 bidirectional: true,
                 keepNext: true,
-                spacing: { before: 180, after: 80 },
+                spacing: { before: 100, after: 40 },
                 children: [
-                  ...(label ? [new TextRun({ text: label + ' ', bold: true, size: 25, color: primaryHex, font: 'Cairo' })] : []),
-                  new TextRun({ text: titleText, bold: true, size: 24, color: '0F172A', font: 'Cairo' }),
-                  ...(marksText ? [new TextRun({ text: marksText, bold: true, size: 21, color: primaryHex, font: 'Cairo' })] : [])
+                  ...(label ? [new TextRun({ text: label + ' ', bold: true, size: 22, color: primaryHex, font: 'Cairo' })] : []),
+                  new TextRun({ text: titleText, bold: true, size: 22, color: '0F172A', font: 'Cairo' }),
+                  ...(marksText ? [new TextRun({ text: marksText, bold: true, size: 19, color: primaryHex, font: 'Cairo' })] : [])
                 ]
               })
             );
 
-            // Check if body contains an HTML table
             const tempContainer = document.createElement('div');
             tempContainer.innerHTML = blk.body;
             const htmlTable = tempContainer.querySelector('table');
@@ -2134,7 +2084,7 @@
                           new TextRun({
                             text: cell.innerText.trim() || ' ',
                             bold: rIdx === 0,
-                            size: 21,
+                            size: 19,
                             font: 'Cairo'
                           })
                         ]
@@ -2162,23 +2112,22 @@
                     new Paragraph({
                       alignment: AlignmentType.RIGHT,
                       bidirectional: true,
-                      spacing: { after: 60 },
-                      indent: { right: 240 },
-                      children: [new TextRun({ text: line, size: 22, font: 'Cairo' })]
+                      spacing: { after: 30 },
+                      indent: { right: 200 },
+                      children: [new TextRun({ text: line, size: 20, font: 'Cairo' })]
                     })
                   );
                 }
               });
             }
 
-            // Answer Lines
             if (blk.lines > 0) {
               for (let i = 0; i < blk.lines; i++) {
                 children.push(
                   new Paragraph({
                     alignment: AlignmentType.RIGHT,
                     bidirectional: true,
-                    spacing: { before: 100, after: 60 },
+                    spacing: { before: 60, after: 30 },
                     border: {
                       bottom: {
                         style: blk.lineStyle === 'solid' ? BorderStyle.SINGLE : BorderStyle.DOTTED,
@@ -2186,7 +2135,7 @@
                         color: '64748B'
                       }
                     },
-                    children: [new TextRun({ text: ' ', size: 20 })]
+                    children: [new TextRun({ text: ' ', size: 18 })]
                   })
                 );
               }
@@ -2194,20 +2143,20 @@
           }
         });
 
-        // 4. Closing Footer Note
+        // 3. Closing Footer Note
         if (appState.showFooter) {
           const closing = document.getElementById('footer-closing-phrase').innerText.trim();
           children.push(
             new Paragraph({
               alignment: AlignmentType.CENTER,
               bidirectional: true,
-              spacing: { before: 320 },
+              spacing: { before: 160 },
               border: { top: { style: BorderStyle.SINGLE, size: 6, color: 'CBD5E1' } },
               children: [
                 new TextRun({
                   text: closing,
                   bold: true,
-                  size: 22,
+                  size: 19,
                   color: primaryHex,
                   font: 'Cairo'
                 })
@@ -2221,7 +2170,7 @@
             {
               properties: {
                 page: {
-                  margin: { top: 720, right: 720, bottom: 720, left: 720 }
+                  margin: { top: 480, right: 540, bottom: 480, left: 540 }
                 }
               },
               children: children
@@ -2231,7 +2180,6 @@
 
         const blob = await Packer.toBlob(doc);
         triggerFileDownload(blob, fileNameBase + '.docx');
-
         showToast('تم تنزيل ملف Word (.docx) القابل للتعديل بنجاح!', 'success');
       } catch (error) {
         console.error('DOCX Export Error:', error);
@@ -2255,23 +2203,16 @@
       return (tmp.innerText || '').split('\n');
     }
 
-    // 15. LocalStorage Save, Load, Duplicate, Delete & Templates Modal
+    // 17. LocalStorage Save, Load, Duplicate, Delete & Templates Modal
     function getFullSerializableState() {
       syncDomToState();
       return {
         ...appState,
         docTitle: document.getElementById('exam-doc-title').value.trim() || 'نموذج امتحان جديد',
         headerValues: {
-          basmala: document.getElementById('paper-basmala').innerText,
           school: document.getElementById('hdr-school').innerText,
-          subject: document.getElementById('hdr-subject').innerText,
           grade: document.getElementById('hdr-grade').innerText,
-          term: document.getElementById('hdr-term').innerText,
-          year: document.getElementById('hdr-year').innerText,
-          date: document.getElementById('hdr-date').innerText,
-          time: document.getElementById('hdr-time').innerText,
-          marks: document.getElementById('hdr-marks').innerText,
-          teacher: document.getElementById('hdr-teacher').innerText,
+          section: document.getElementById('hdr-section').innerText,
           footerNote: document.getElementById('footer-teacher-note').innerText,
           closingPhrase: document.getElementById('footer-closing-phrase').innerText
         },
@@ -2285,16 +2226,9 @@
 
       if (stateObj.headerValues) {
         const hv = stateObj.headerValues;
-        if (hv.basmala !== undefined) document.getElementById('paper-basmala').innerText = hv.basmala;
         if (hv.school !== undefined) document.getElementById('hdr-school').innerText = hv.school;
-        if (hv.subject !== undefined) document.getElementById('hdr-subject').innerText = hv.subject;
         if (hv.grade !== undefined) document.getElementById('hdr-grade').innerText = hv.grade;
-        if (hv.term !== undefined) document.getElementById('hdr-term').innerText = hv.term;
-        if (hv.year !== undefined) document.getElementById('hdr-year').innerText = hv.year;
-        if (hv.date !== undefined) document.getElementById('hdr-date').innerText = hv.date;
-        if (hv.time !== undefined) document.getElementById('hdr-time').innerText = hv.time;
-        if (hv.marks !== undefined) document.getElementById('hdr-marks').innerText = hv.marks;
-        if (hv.teacher !== undefined) document.getElementById('hdr-teacher').innerText = hv.teacher;
+        if (hv.section !== undefined) document.getElementById('hdr-section').innerText = hv.section;
         if (hv.footerNote !== undefined) document.getElementById('footer-teacher-note').innerText = hv.footerNote;
         if (hv.closingPhrase !== undefined) {
           document.getElementById('footer-closing-phrase').innerText = hv.closingPhrase;
@@ -2306,22 +2240,15 @@
       setPaperFrame(appState.paperFrame);
       setPaperOrientation(appState.orientation);
       setPaperMargin(appState.marginMm);
+      setThinHeaderSize(appState.headerBarSizePx || 13);
       applyFontFamily(appState.fontFamily);
       updatePaperLineHeight(appState.lineHeight);
       toggleHeaderVisibility(appState.showHeader);
-      toggleBasmalaVisibility(appState.showBasmala);
       toggleFooterVisibility(appState.showFooter);
 
       document.getElementById('toggle-exam-header').checked = appState.showHeader;
-      document.getElementById('toggle-basmala').checked = appState.showBasmala;
       document.getElementById('toggle-footer-checkbox').checked = appState.showFooter;
       document.getElementById('numbering-style-select').value = appState.numberingStyle;
-
-      if (appState.logoDataUrl) {
-        const img = document.getElementById('hdr-logo-img');
-        img.src = appState.logoDataUrl;
-        img.classList.remove('hidden');
-      }
 
       renderBlocks();
       calculateTotalMarks();
@@ -2333,7 +2260,7 @@
       clearTimeout(autosaveTimer);
       autosaveTimer = setTimeout(() => {
         const data = getFullSerializableState();
-        localStorage.setItem('mumtahin_autosave_v1', JSON.stringify(data));
+        localStorage.setItem('mumtahin_autosave_v2', JSON.stringify(data));
       }, 400);
     }
 
@@ -2348,7 +2275,7 @@
 
     function getSavedExamsList() {
       try {
-        return JSON.parse(localStorage.getItem('mumtahin_saved_exams_v1') || '[]');
+        return JSON.parse(localStorage.getItem('mumtahin_saved_exams_v2') || '[]');
       } catch {
         return [];
       }
@@ -2382,7 +2309,7 @@
 
       const list = getSavedExamsList();
       list.unshift(fullData);
-      localStorage.setItem('mumtahin_saved_exams_v1', JSON.stringify(list));
+      localStorage.setItem('mumtahin_saved_exams_v2', JSON.stringify(list));
       closeModal();
       showToast(`تم حفظ "${nameInput}" في الامتحانات المحفوظة`, 'success');
     }
@@ -2390,7 +2317,7 @@
     function openExamsModal() {
       const list = getSavedExamsList();
       const savedHtml = list.length === 0
-        ? `<div class="text-center py-8 text-xs font-semibold text-slate-400">لا توجد امتحانات محفوظة بعد. اضغط على زر "حفظ" لحفظ امتحانك الحالي.</div>`
+        ? `<div class="text-center py-8 text-xs font-semibold text-slate-400">لا توجد امتحانات محفوظة بعد. اضغط على زر "حفظ الامتحان" لحفظ امتحانك الحالي.</div>`
         : list.map((item, idx) => `
             <div class="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-blue-300 bg-slate-50/60">
               <div>
@@ -2454,7 +2381,7 @@
       cloned.savedId = 'exam_' + Date.now();
       cloned.updatedAt = new Date().toLocaleString('ar-IQ');
       list.unshift(cloned);
-      localStorage.setItem('mumtahin_saved_exams_v1', JSON.stringify(list));
+      localStorage.setItem('mumtahin_saved_exams_v2', JSON.stringify(list));
       openExamsModal();
       showToast('تم إنشاء نسخة جديدة من الامتحان', 'success');
     }
@@ -2462,7 +2389,7 @@
     function deleteSavedExam(index) {
       const list = getSavedExamsList();
       list.splice(index, 1);
-      localStorage.setItem('mumtahin_saved_exams_v1', JSON.stringify(list));
+      localStorage.setItem('mumtahin_saved_exams_v2', JSON.stringify(list));
       openExamsModal();
       showToast('تم حذف الامتحان المحفوظ', 'info');
     }
@@ -2479,13 +2406,13 @@
             id: genId(), kind: 'question', qType: 'mcq',
             title: 'اختر الإجابة الصحيحة لكل فقرة من الفقرات الآتية:',
             body: '١. الفقرة الأولى: &nbsp; ( أ- الخيار الأول &nbsp;&nbsp; ب- الخيار الثاني &nbsp;&nbsp; ج- الخيار الثالث &nbsp;&nbsp; د- الخيار الرابع )<br>٢. الفقرة الثانية: &nbsp; ( أ- الخيار الأول &nbsp;&nbsp; ب- الخيار الثاني &nbsp;&nbsp; ج- الخيار الثالث &nbsp;&nbsp; د- الخيار الرابع )<br>٣. الفقرة الثالثة: &nbsp; ( أ- الخيار الأول &nbsp;&nbsp; ب- الخيار الثاني &nbsp;&nbsp; ج- الخيار الثالث &nbsp;&nbsp; د- الخيار الرابع )',
-            marks: '١٥ درجة', bgColor: 'transparent', titleSize: 15, bodySize: 14, lines: 0, lineStyle: 'dotted', image: ''
+            marks: '١٥ درجة', bgColor: 'transparent', titleSize: 13.5, bodySize: 13, lines: 0, lineStyle: 'dotted', image: ''
           },
           {
             id: genId(), kind: 'question', qType: 'truefalse',
             title: 'ضع علامة ( ✓ ) أمام العبارة الصحيحة وعلامة ( ✗ ) أمام العبارة الخاطئة:',
             body: '١. ( &nbsp;&nbsp;&nbsp; ) العبارة الأولى هنا.<br>٢. ( &nbsp;&nbsp;&nbsp; ) العبارة الثانية هنا.<br>٣. ( &nbsp;&nbsp;&nbsp; ) العبارة الثالثة هنا.',
-            marks: '١٥ درجة', bgColor: 'transparent', titleSize: 15, bodySize: 14, lines: 0, lineStyle: 'dotted', image: ''
+            marks: '١٥ درجة', bgColor: 'transparent', titleSize: 13.5, bodySize: 13, lines: 0, lineStyle: 'dotted', image: ''
           }
         ];
         renderBlocks();
@@ -2496,13 +2423,13 @@
             id: genId(), kind: 'question', qType: 'custom',
             title: '<div dir="ltr" style="text-align:left">Read the following passage carefully and answer the questions:</div>',
             body: '<div dir="ltr" style="text-align:left">1. What is the main idea of the passage?<br>2. Choose the correct word: She ( go / goes / going ) to school every day.</div>',
-            marks: '10 Marks', bgColor: 'transparent', titleSize: 15, bodySize: 14, lines: 2, lineStyle: 'dotted', image: ''
+            marks: '10 Marks', bgColor: 'transparent', titleSize: 13.5, bodySize: 13, lines: 2, lineStyle: 'dotted', image: ''
           },
           {
             id: genId(), kind: 'question', qType: 'fill',
             title: '<div dir="ltr" style="text-align:left">Fill in the blanks with suitable words:</div>',
             body: '<div dir="ltr" style="text-align:left">1. The capital of Iraq is .............................. .<br>2. Water boils at .............................. degrees Celsius.</div>',
-            marks: '10 Marks', bgColor: 'transparent', titleSize: 15, bodySize: 14, lines: 0, lineStyle: 'dotted', image: ''
+            marks: '10 Marks', bgColor: 'transparent', titleSize: 13.5, bodySize: 13, lines: 0, lineStyle: 'dotted', image: ''
           }
         ];
         renderBlocks();
@@ -2537,7 +2464,7 @@
           id: genId(), kind: 'question', qType: 'custom',
           title: 'اكتب نص السؤال الأول هنا:',
           body: 'اكتب تفاصيل السؤال أو الفروع هنا...',
-          marks: '١٠ درجات', bgColor: 'transparent', titleSize: 15, bodySize: 14, lines: 0, lineStyle: 'dotted', image: ''
+          marks: '١٠ درجات', bgColor: 'transparent', titleSize: 13.5, bodySize: 13, lines: 0, lineStyle: 'dotted', image: ''
         }
       ];
       renderBlocks();
@@ -2573,7 +2500,7 @@
       showToast('تم مسح محتوى الأسئلة', 'info');
     }
 
-    // 16. Modal & Toast Helpers
+    // 18. Modal & Toast Helpers
     function openModal(htmlContent) {
       const backdrop = document.getElementById('modal-backdrop');
       const box = document.getElementById('modal-box');
@@ -2609,4 +2536,3 @@
   </script>
 </body>
 </html>
-```
