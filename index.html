@@ -160,7 +160,7 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.15s ease;
-      shrink: 0;
+      flex-shrink: 0;
     }
 
     /* Editable placeholders */
@@ -440,7 +440,7 @@
 
         <div class="hidden md:flex items-center gap-2 text-[11px] text-slate-300">
           <span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span>الحفظ التلقائي مفعّل • ورقة A4 واحدة مضغوطة</span>
+          <span>متوافق مع كودلر (WebViewString) • ورقة A4 واحدة</span>
         </div>
       </div>
     </div>
@@ -843,8 +843,67 @@
 
   <script>
     /*************************************************************************
-     * مُمْتَحِن (Mumtahin) – Single A4 Sheet & Free Thin Header Edition
+     * مُمْتَحِن (Mumtahin) – Kodular WebViewString + Single A4 Edition
      *************************************************************************/
+
+    // Kodular WebViewString Bridge Helper
+    function isKodularWebView() {
+      return Boolean(window.AppInventor && typeof window.AppInventor.setWebViewString === 'function');
+    }
+
+    function sendToKodular(action, payloadObj = {}) {
+      if (!isKodularWebView()) return false;
+      const title = document.getElementById('exam-doc-title')?.value.trim() || 'نموذج امتحان';
+      const plainText = buildPlainExamText();
+      const packet = JSON.stringify({
+        action: action,
+        title: title,
+        text: plainText,
+        ...payloadObj
+      });
+      try {
+        window.AppInventor.setWebViewString(packet);
+        return true;
+      } catch (err) {
+        console.error('Kodular WebViewString error:', err);
+        return false;
+      }
+    }
+
+    function buildPlainExamText() {
+      syncDomToState();
+      const parts = [];
+      const title = document.getElementById('exam-doc-title')?.value.trim();
+      if (title) parts.push(title);
+
+      if (appState.showHeader) {
+        const hdr = stripTags(document.getElementById('hdr-free-bar')?.innerHTML || '').trim();
+        if (hdr) parts.push(hdr);
+      }
+
+      let qIdx = 0;
+      appState.blocks.forEach(blk => {
+        if (blk.kind === 'divider') {
+          parts.push('------------------------------');
+        } else if (blk.kind === 'instruction' || blk.kind === 'unnumbered') {
+          const d = document.createElement('div');
+          d.innerHTML = `${blk.title} ${blk.body}`.replace(/<br\s*\/?>/gi, '\n');
+          parts.push(d.innerText.trim());
+        } else if (blk.kind === 'question') {
+          const lbl = getQuestionLabel(qIdx++);
+          const d = document.createElement('div');
+          d.innerHTML = `${lbl} ${blk.title} ${blk.marks ? `(${blk.marks})` : ''}\n${blk.body}`.replace(/<br\s*\/?>/gi, '\n');
+          parts.push(d.innerText.trim());
+        }
+      });
+
+      if (appState.showFooter) {
+        const closing = document.getElementById('footer-closing-phrase')?.innerText.trim();
+        if (closing) parts.push(closing);
+      }
+
+      return parts.join('\n\n');
+    }
 
     // 1. Question Templates Library (14 Types - Compact Sizes)
     const QUESTION_TYPES = [
@@ -1849,7 +1908,7 @@
       }
     }
 
-    // 15. Print & Real Single-Page A4 PDF Export
+    // 15. Print & Real Single-Page A4 PDF Export + Kodular Bridge
     function triggerFileDownload(blob, fileName) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -1866,14 +1925,23 @@
 
     function printExamDirect() {
       syncDomToState();
+      if (sendToKodular('PRINT')) {
+        showToast('تم إرسال أمر الطباعة إلى التطبيق', 'info');
+        return;
+      }
       window.print();
     }
 
     function exportToPDF() {
       syncDomToState();
-      const sheet = document.getElementById('exam-paper-sheet');
       const fileName = (document.getElementById('exam-doc-title').value.trim() || 'امتحان_ممتحن') + '.pdf';
 
+      if (sendToKodular('EXPORT_PDF', { fileName: fileName })) {
+        showToast('تم إرسال أمر تصدير PDF إلى التطبيق', 'info');
+        return;
+      }
+
+      const sheet = document.getElementById('exam-paper-sheet');
       if (typeof window.html2pdf === 'undefined') {
         showToast('تم فتح نافذة الطباعة — اختر "حفظ بتنسيق PDF" لحفظ الملف', 'info');
         window.print();
@@ -1933,10 +2001,15 @@
       showToast('تم تنزيل ملف Word القابل للتعديل بنجاح!', 'success');
     }
 
-    // 16. Real Microsoft Word (.docx) Export Engine with Free-Text Top Bar
+    // 16. Real Microsoft Word (.docx) Export Engine + Kodular Bridge
     async function exportToDOCX() {
       syncDomToState();
       const fileNameBase = document.getElementById('exam-doc-title').value.trim() || 'امتحان_ممتحن';
+
+      if (sendToKodular('EXPORT_DOCX', { fileName: fileNameBase + '.docx' })) {
+        showToast('تم إرسال أمر تصدير Word إلى التطبيق', 'info');
+        return;
+      }
 
       if (!window.docx || !window.docx.Document) {
         exportWordHtmlFallback(fileNameBase);
