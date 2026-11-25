@@ -117,7 +117,7 @@
       padding: 7mm 9mm;
     }
 
-    /* Thin Top Rectangular Bar (School, Grade, Section) */
+    /* Thin Top Rectangular Free-Edit Bar */
     .thin-header-bar {
       display: flex;
       align-items: center;
@@ -129,9 +129,17 @@
       padding: var(--thin-bar-py) 12px;
       margin-bottom: 10px;
       font-size: var(--thin-bar-font);
-      line-height: 1.3;
+      line-height: 1.35;
       position: relative;
       transition: all 0.15s ease;
+    }
+
+    .thin-header-free-text {
+      flex: 1;
+      min-height: 1.35em;
+      font-weight: 800;
+      color: #0f172a;
+      cursor: text;
     }
 
     .thin-header-bar:hover .header-size-controls {
@@ -143,6 +151,7 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.15s ease;
+      shrink: 0;
     }
 
     /* Editable placeholders */
@@ -659,10 +668,14 @@
           <input type="range" id="header-bar-size-slider" min="9" max="22" value="13" oninput="setThinHeaderSize(this.value)" class="w-full accent-blue-600 cursor-pointer" />
         </div>
 
-        <!-- Individual Header Fields Visibility -->
-        <div class="space-y-1.5 pt-1">
-          <h4 class="text-xs font-extrabold text-slate-500 mb-2">حقول الشريط العلوي (إظهار / إخفاء):</h4>
-          <div id="header-fields-toggles" class="space-y-1.5 text-xs"></div>
+        <!-- Quick Text Helpers for Free Editing -->
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+          <span class="block text-xs font-extrabold text-slate-700">إدراج سريع داخل الشريط (اختياري):</span>
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="appendToHeaderBar('بسم الله الرحمن الرحيم')" class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-blue-50 text-[11px] font-bold text-slate-700">+ بسملة</button>
+            <button onclick="appendToHeaderBar('امتحان الشهر الأول')" class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-blue-50 text-[11px] font-bold text-slate-700">+ امتحان الشهر الأول</button>
+            <button onclick="resetHeaderBarFree()" class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-rose-50 text-[11px] font-bold text-rose-700">تفريغ الشريط</button>
+          </div>
         </div>
       </div>
 
@@ -755,25 +768,18 @@
       <div id="exam-paper-sheet" class="a4-sheet">
         <div id="paper-inner-frame" class="paper-inner-frame frame-simple">
           
-          <!-- Top Section: Thin Header Strip + Compact Questions -->
+          <!-- Top Section: Free-Editable Thin Header Strip + Compact Questions -->
           <div id="paper-content-wrapper">
 
-            <!-- Thin Rectangular Top Strip (School, Grade, Section) with Resize Controls -->
+            <!-- Thin Rectangular Top Strip (100% Free Editing) -->
             <div id="paper-exam-header" class="thin-header-bar">
-              <div data-field="school" class="flex items-baseline gap-1">
-                <span class="font-bold text-slate-600 shrink-0">المدرسة:</span>
-                <span id="hdr-school" contenteditable="true" data-placeholder="اكتب اسم المدرسة..." class="font-extrabold text-slate-900">ثانوية المستقبل النموذجية</span>
-              </div>
-
-              <div data-field="grade" class="flex items-baseline gap-1">
-                <span class="font-bold text-slate-600 shrink-0">الصف:</span>
-                <span id="hdr-grade" contenteditable="true" data-placeholder="اكتب الصف..." class="font-extrabold text-slate-900">الثاني المتوسط</span>
-              </div>
-
-              <div data-field="section" class="flex items-baseline gap-1">
-                <span class="font-bold text-slate-600 shrink-0">الشعبة:</span>
-                <span id="hdr-section" contenteditable="true" data-placeholder="أ / ب..." class="font-extrabold text-slate-900">أ</span>
-              </div>
+              <div
+                id="hdr-free-bar"
+                contenteditable="true"
+                onblur="updateHeaderFreeText(this.innerHTML)"
+                data-placeholder="اكتب هنا بحرية: المدرسة، الصف، الشعبة، أو البسملة، أو امتحان الشهر الأول..."
+                class="thin-header-free-text"
+              >المدرسة: ...................... &nbsp;&nbsp;|&nbsp;&nbsp; الصف: .............. &nbsp;&nbsp;|&nbsp;&nbsp; الشعبة: ...... &nbsp;&nbsp;|&nbsp;&nbsp; امتحان الشهر الأول</div>
 
               <!-- Quick Resize Controls for the Thin Top Bar -->
               <div class="header-size-controls no-print no-preview flex items-center gap-1 bg-white border border-slate-300 rounded-md px-1.5 py-0.5 shadow-xs mr-1">
@@ -828,7 +834,7 @@
 
   <script>
     /*************************************************************************
-     * مُمْتَحِن (Mumtahin) – Single A4 Sheet & Thin Header Edition
+     * مُمْتَحِن (Mumtahin) – Single A4 Sheet & Free Thin Header Edition
      *************************************************************************/
 
     // 1. Question Templates Library (14 Types - Compact Sizes)
@@ -855,15 +861,10 @@
       'H₂O', 'CO₂', '→', '⇌', '∈', '∉', '∪', '∩', '∅', '٪'
     ];
 
-    const HEADER_FIELDS_CONFIG = [
-      { key: 'school', label: 'اسم المدرسة' },
-      { key: 'grade', label: 'الصف' },
-      { key: 'section', label: 'الشعبة' }
-    ];
-
     // 2. Application State
     let appState = {
       docTitle: 'نموذج امتحان جديد',
+      headerFreeHtml: 'المدرسة: ...................... &nbsp;&nbsp;|&nbsp;&nbsp; الصف: .............. &nbsp;&nbsp;|&nbsp;&nbsp; الشعبة: ...... &nbsp;&nbsp;|&nbsp;&nbsp; امتحان الشهر الأول',
       themeColor: '#1e3a8a',
       themeLight: '#eff6ff',
       fontFamily: "'Cairo', sans-serif",
@@ -876,7 +877,6 @@
       digitMode: 'ar',
       showHeader: true,
       showFooter: true,
-      hiddenHeaderFields: [],
       selectedBlockId: null,
       blocks: []
     };
@@ -890,7 +890,6 @@
     document.addEventListener('DOMContentLoaded', () => {
       renderQuestionTypesSidebar();
       renderMathSymbols();
-      renderHeaderFieldsToggles();
       loadFromAutosaveOrDefault();
       lucide.createIcons();
 
@@ -932,19 +931,9 @@
       `).join('');
     }
 
-    function renderHeaderFieldsToggles() {
-      const container = document.getElementById('header-fields-toggles');
-      container.innerHTML = HEADER_FIELDS_CONFIG.map(f => `
-        <label class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 cursor-pointer">
-          <span class="font-semibold text-slate-700">${f.label}</span>
-          <input type="checkbox" data-field-toggle="${f.key}" checked onchange="toggleHeaderField('${f.key}', this.checked)" class="w-3.5 h-3.5 accent-blue-600 rounded" />
-        </label>
-      `).join('');
-    }
-
     // 4. Default Sample Exam or Load Autosave
     function loadFromAutosaveOrDefault() {
-      const saved = localStorage.getItem('mumtahin_autosave_v2');
+      const saved = localStorage.getItem('mumtahin_autosave_v3');
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
@@ -1023,7 +1012,30 @@
       triggerAutosave();
     }
 
-    // 5. Thin Top Header Bar Resize Controls
+    // 5. Thin Top Header Bar Free Editing & Resize Controls
+    function updateHeaderFreeText(html) {
+      appState.headerFreeHtml = html;
+      triggerAutosave();
+    }
+
+    function appendToHeaderBar(textToAdd) {
+      pushHistory();
+      const bar = document.getElementById('hdr-free-bar');
+      const current = bar.innerHTML.trim();
+      bar.innerHTML = current ? `${current} &nbsp;&nbsp;|&nbsp;&nbsp; ${textToAdd}` : textToAdd;
+      appState.headerFreeHtml = bar.innerHTML;
+      triggerAutosave();
+    }
+
+    function resetHeaderBarFree() {
+      pushHistory();
+      const bar = document.getElementById('hdr-free-bar');
+      bar.innerHTML = '';
+      bar.focus();
+      appState.headerFreeHtml = '';
+      triggerAutosave();
+    }
+
     function setThinHeaderSize(px) {
       const size = Math.max(9, Math.min(22, Number(px) || 13));
       appState.headerBarSizePx = size;
@@ -1045,10 +1057,8 @@
     function autoFitSingleA4() {
       syncDomToState();
       pushHistory();
-      const sheet = document.getElementById('exam-paper-sheet');
       const frame = document.getElementById('paper-inner-frame');
 
-      // Reset to compact baseline
       setPaperMargin(7);
       updatePaperLineHeight('1.25');
       document.getElementById('toolbar-line-height').value = '1.25';
@@ -1066,7 +1076,6 @@
 
       applySizes(titleSize, bodySize);
 
-      // Iteratively shrink font size slightly until content fits cleanly inside A4 height
       while (frame.scrollHeight > frame.clientHeight && bodySize > 9.5) {
         bodySize -= 0.5;
         titleSize -= 0.5;
@@ -1470,6 +1479,11 @@
     }
 
     function syncDomToState() {
+      const freeBar = document.getElementById('hdr-free-bar');
+      if (freeBar) {
+        appState.headerFreeHtml = freeBar.innerHTML;
+      }
+
       document.querySelectorAll('.question-block').forEach(el => {
         const id = el.dataset.blockId;
         const blk = appState.blocks.find(b => b.id === id);
@@ -1573,7 +1587,6 @@
           renderBlocks();
         }
       } else {
-        // Apply to all questions if none selected
         appState.blocks.forEach(b => {
           b.bodySize = Number(sizePx);
           b.titleSize = Number(sizePx) + 0.5;
@@ -1691,17 +1704,6 @@
 
     function updateClosingPhrase(val) {
       document.getElementById('footer-closing-phrase').innerText = val;
-      triggerAutosave();
-    }
-
-    function toggleHeaderField(fieldKey, isVisible) {
-      const el = document.querySelector(`[data-field="${fieldKey}"]`);
-      if (el) el.classList.toggle('hidden', !isVisible);
-      if (!isVisible && !appState.hiddenHeaderFields.includes(fieldKey)) {
-        appState.hiddenHeaderFields.push(fieldKey);
-      } else if (isVisible) {
-        appState.hiddenHeaderFields = appState.hiddenHeaderFields.filter(k => k !== fieldKey);
-      }
       triggerAutosave();
     }
 
@@ -1891,7 +1893,6 @@
       });
     }
 
-    // Fallback Word-compatible HTML Generator
     function exportWordHtmlFallback(fileNameBase) {
       const sheetClone = document.getElementById('exam-paper-sheet').cloneNode(true);
       sheetClone.querySelectorAll('.no-print, .block-controls, .header-size-controls, .add-between-btn').forEach(el => el.remove());
@@ -1923,7 +1924,7 @@
       showToast('تم تنزيل ملف Word القابل للتعديل بنجاح!', 'success');
     }
 
-    // 16. Real Microsoft Word (.docx) Export Engine with Thin Top Header Bar
+    // 16. Real Microsoft Word (.docx) Export Engine with Free-Text Top Bar
     async function exportToDOCX() {
       syncDomToState();
       const fileNameBase = document.getElementById('exam-doc-title').value.trim() || 'امتحان_ممتحن';
@@ -1945,18 +1946,9 @@
         const lightHex = appState.themeLight.replace('#', '');
         const children = [];
 
-        // 1. Thin Rectangular Top Bar (School, Grade, Section)
+        // 1. Thin Rectangular Top Bar (Free Text)
         if (appState.showHeader) {
-          const schoolVal = !appState.hiddenHeaderFields.includes('school')
-            ? `المدرسة: ${document.getElementById('hdr-school')?.innerText.trim() || ''}`
-            : '';
-          const gradeVal = !appState.hiddenHeaderFields.includes('grade')
-            ? `الصف: ${document.getElementById('hdr-grade')?.innerText.trim() || ''}`
-            : '';
-          const sectionVal = !appState.hiddenHeaderFields.includes('section')
-            ? `الشعبة: ${document.getElementById('hdr-section')?.innerText.trim() || ''}`
-            : '';
-
+          const freeText = stripTags(document.getElementById('hdr-free-bar')?.innerHTML || '').trim();
           const headerFontHalfPts = Math.round((appState.headerBarSizePx || 13) * 1.6);
 
           const thinHeaderTable = new Table({
@@ -1966,46 +1958,20 @@
               top: { style: BorderStyle.SINGLE, size: 12, color: primaryHex },
               bottom: { style: BorderStyle.SINGLE, size: 12, color: primaryHex },
               left: { style: BorderStyle.SINGLE, size: 12, color: primaryHex },
-              right: { style: BorderStyle.SINGLE, size: 12, color: primaryHex },
-              insideHorizontal: { style: BorderStyle.NONE },
-              insideVertical: { style: BorderStyle.NONE }
+              right: { style: BorderStyle.SINGLE, size: 12, color: primaryHex }
             },
             rows: [
               new TableRow({
                 children: [
                   new TableCell({
-                    width: { size: 44, type: WidthType.PERCENTAGE },
+                    width: { size: 100, type: WidthType.PERCENTAGE },
                     shading: { fill: lightHex, type: ShadingType.CLEAR },
                     children: [
                       new Paragraph({
                         alignment: AlignmentType.RIGHT,
                         bidirectional: true,
                         spacing: { before: 20, after: 20 },
-                        children: [new TextRun({ text: schoolVal, bold: true, size: headerFontHalfPts, font: 'Cairo' })]
-                      })
-                    ]
-                  }),
-                  new TableCell({
-                    width: { size: 34, type: WidthType.PERCENTAGE },
-                    shading: { fill: lightHex, type: ShadingType.CLEAR },
-                    children: [
-                      new Paragraph({
-                        alignment: AlignmentType.CENTER,
-                        bidirectional: true,
-                        spacing: { before: 20, after: 20 },
-                        children: [new TextRun({ text: gradeVal, bold: true, size: headerFontHalfPts, font: 'Cairo' })]
-                      })
-                    ]
-                  }),
-                  new TableCell({
-                    width: { size: 22, type: WidthType.PERCENTAGE },
-                    shading: { fill: lightHex, type: ShadingType.CLEAR },
-                    children: [
-                      new Paragraph({
-                        alignment: AlignmentType.LEFT,
-                        bidirectional: true,
-                        spacing: { before: 20, after: 20 },
-                        children: [new TextRun({ text: sectionVal, bold: true, size: headerFontHalfPts, font: 'Cairo' })]
+                        children: [new TextRun({ text: freeText, bold: true, size: headerFontHalfPts, font: 'Cairo' })]
                       })
                     ]
                   })
@@ -2210,9 +2176,7 @@
         ...appState,
         docTitle: document.getElementById('exam-doc-title').value.trim() || 'نموذج امتحان جديد',
         headerValues: {
-          school: document.getElementById('hdr-school').innerText,
-          grade: document.getElementById('hdr-grade').innerText,
-          section: document.getElementById('hdr-section').innerText,
+          freeHtml: document.getElementById('hdr-free-bar').innerHTML,
           footerNote: document.getElementById('footer-teacher-note').innerText,
           closingPhrase: document.getElementById('footer-closing-phrase').innerText
         },
@@ -2224,11 +2188,15 @@
       appState = { ...appState, ...stateObj };
       syncTitleInputs(appState.docTitle || 'نموذج امتحان جديد');
 
+      const freeBar = document.getElementById('hdr-free-bar');
+      if (stateObj.headerValues && stateObj.headerValues.freeHtml !== undefined) {
+        freeBar.innerHTML = stateObj.headerValues.freeHtml;
+      } else if (stateObj.headerFreeHtml !== undefined) {
+        freeBar.innerHTML = stateObj.headerFreeHtml;
+      }
+
       if (stateObj.headerValues) {
         const hv = stateObj.headerValues;
-        if (hv.school !== undefined) document.getElementById('hdr-school').innerText = hv.school;
-        if (hv.grade !== undefined) document.getElementById('hdr-grade').innerText = hv.grade;
-        if (hv.section !== undefined) document.getElementById('hdr-section').innerText = hv.section;
         if (hv.footerNote !== undefined) document.getElementById('footer-teacher-note').innerText = hv.footerNote;
         if (hv.closingPhrase !== undefined) {
           document.getElementById('footer-closing-phrase').innerText = hv.closingPhrase;
@@ -2260,7 +2228,7 @@
       clearTimeout(autosaveTimer);
       autosaveTimer = setTimeout(() => {
         const data = getFullSerializableState();
-        localStorage.setItem('mumtahin_autosave_v2', JSON.stringify(data));
+        localStorage.setItem('mumtahin_autosave_v3', JSON.stringify(data));
       }, 400);
     }
 
@@ -2275,7 +2243,7 @@
 
     function getSavedExamsList() {
       try {
-        return JSON.parse(localStorage.getItem('mumtahin_saved_exams_v2') || '[]');
+        return JSON.parse(localStorage.getItem('mumtahin_saved_exams_v3') || '[]');
       } catch {
         return [];
       }
@@ -2309,7 +2277,7 @@
 
       const list = getSavedExamsList();
       list.unshift(fullData);
-      localStorage.setItem('mumtahin_saved_exams_v2', JSON.stringify(list));
+      localStorage.setItem('mumtahin_saved_exams_v3', JSON.stringify(list));
       closeModal();
       showToast(`تم حفظ "${nameInput}" في الامتحانات المحفوظة`, 'success');
     }
@@ -2381,7 +2349,7 @@
       cloned.savedId = 'exam_' + Date.now();
       cloned.updatedAt = new Date().toLocaleString('ar-IQ');
       list.unshift(cloned);
-      localStorage.setItem('mumtahin_saved_exams_v2', JSON.stringify(list));
+      localStorage.setItem('mumtahin_saved_exams_v3', JSON.stringify(list));
       openExamsModal();
       showToast('تم إنشاء نسخة جديدة من الامتحان', 'success');
     }
@@ -2389,7 +2357,7 @@
     function deleteSavedExam(index) {
       const list = getSavedExamsList();
       list.splice(index, 1);
-      localStorage.setItem('mumtahin_saved_exams_v2', JSON.stringify(list));
+      localStorage.setItem('mumtahin_saved_exams_v3', JSON.stringify(list));
       openExamsModal();
       showToast('تم حذف الامتحان المحفوظ', 'info');
     }
